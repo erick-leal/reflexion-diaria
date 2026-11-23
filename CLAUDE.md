@@ -103,6 +103,27 @@ Mobile Engineer/Architect/mentor técnico:
     `keyboardShouldPersistTaps`); el loading se muestra donde va a
     aparecer la data; `DateTimePickerAndroid.open` imperativo.
 
+## Infraestructura
+
+- **Backend:** `https://reflexion-diaria-production.up.railway.app`, en un
+  proyecto Railway propio (no es `diligent-reflection`, que es el de
+  Versículo). Servicios: backend (repo de GitHub, deploy automático en
+  cada push a `main`) + Postgres 18.
+- **Config del servicio como código:** `backend/railway.json`, con
+  migraciones en el pre-deploy (`alembic upgrade head`; si fallan, el
+  deploy se cancela y queda la versión anterior), arranque con uvicorn y
+  healthcheck en `/health`. En el dashboard solo quedan Root Directory =
+  `/backend`, Railway Config File = `/backend/railway.json` (ruta
+  absoluta: no se resuelve dentro del Root Directory) y la variable
+  `DATABASE_URL = ${{Postgres.DATABASE_URL}}` (URL privada, red interna).
+- **Migraciones:** se aplican solas al desplegar. No hay que correrlas a
+  mano contra producción, salvo en desarrollo local.
+- **Postgres con el proxy público ABIERTO** mientras desarrollamos (lo
+  usa `backend/.env` en local). **Cerrarlo antes de lanzar**, como en
+  Versículo (gotcha #7 de su `CLAUDE.md`).
+- CORS: cuando se despliegue el admin (Fase 9), agregar su dominio en
+  `backend/app/main.py`.
+
 ## Modelo de datos (backend/app/models.py)
 
 - **`reflections`**: una fila = una pieza completa: `quote` (frase,
@@ -149,9 +170,10 @@ Mobile Engineer/Architect/mentor técnico:
    published de hoy → 200; `reviewed` → 404 (tanto por fecha como por
    id); el CHECK rechaza estados inválidos; `quote` duplicada rechazada;
    `alembic check` sin diferencias.
-3. Proyecto Railway nuevo: deploy del backend. (El **Postgres ya existe**,
-   creado en la fase 2, PostgreSQL 18, **con el proxy público ABIERTO**
-   para desarrollo. Cerrarlo antes de lanzar, como en Versículo.)
+3. ✅ **Backend desplegado en Railway** (2026-11-23). Ver
+   "Infraestructura". Verificado: `/health` 200; producción lee la misma
+   base (dato `published` temporal → 200, tras borrarlo → 404); la base
+   quedó en la migración `37bf00893bb9`.
 4. App Expo consumiendo el backend real (TanStack Query).
 5. Sistema de diseño propio + modo oscuro.
 6. Identidad anónima + favoritos + historial + diario personal (con
