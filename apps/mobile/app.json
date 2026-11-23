@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Reflexión Diaria",
+    "slug": "reflexion-diaria",
+    "version": "1.0.0",
+    "scheme": "reflexiondiaria",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.erickleal.reflexiondiaria"
+    },
+    "android": {
+      "package": "com.erickleal.reflexiondiaria",
+      "versionCode": 1,
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": ["expo-router"],
+    "extra": {
+      "router": {}
+    }
+  }
+}
