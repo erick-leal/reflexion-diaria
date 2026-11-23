@@ -65,8 +65,8 @@ Mobile Engineer/Architect/mentor técnico:
   Expo Router, TanStack Query (desde la Fase 4), StyleSheet.
 - **Admin** (`apps/admin`): React + Vite + TypeScript; Firebase Auth en la
   Fase 9.
-- **Backend** (`backend/`): FastAPI; SQLAlchemy 2.0 + Alembic + PostgreSQL
-  desde la Fase 2.
+- **Backend** (`backend/`): FastAPI + SQLAlchemy 2.0 + Alembic +
+  PostgreSQL 18 (Railway, proyecto propio).
 - **Compartido** (`packages/shared`, `@reflexion-diaria/shared`): tipos TS
   para mobile y admin.
 
@@ -103,6 +103,28 @@ Mobile Engineer/Architect/mentor técnico:
     `keyboardShouldPersistTaps`); el loading se muestra donde va a
     aparecer la data; `DateTimePickerAndroid.open` imperativo.
 
+## Modelo de datos (backend/app/models.py)
+
+- **`reflections`**: una fila = una pieza completa: `quote` (frase,
+  única), `body` (reflexión), `action` (acción concreta para hoy),
+  `status`, `source` (`human`/`ai`, quién escribió el borrador; no es una
+  atribución pública), `reviewed_by`, `mood_tags`. Frase y reflexión van
+  en **una sola tabla a propósito** (decisión de Erick): en Versículo eran
+  dos porque el versículo es texto externo reutilizable; acá la frase es
+  original y se revisa siempre junto con su reflexión.
+- **`daily_reflections`**: `date` (única) → `reflection_id`. El
+  `reflection_id` no es único, para que el cron pueda reutilizar
+  reflexiones publicadas.
+- `status` y `source` se validan con un **CHECK en Postgres**
+  (`ck_reflections_status`/`ck_reflections_source`), no solo en Python.
+  Si se agrega un estado, hay que cambiar `app/constants.py`, crear una
+  migración que recree el CHECK y actualizar `packages/shared`.
+- Los endpoints públicos (`routers/daily_reflection.py`) parten todos de
+  la consulta base `_published`. Cualquier endpoint público nuevo debe
+  partir de ahí.
+- `MOOD_TAGS` es provisional (`app/constants.py` + `packages/shared`). Se
+  afina en la Fase 10.
+
 ## Comandos
 
 - Instalar: `pnpm install` (raíz).
@@ -111,15 +133,25 @@ Mobile Engineer/Architect/mentor técnico:
 - Backend: `cd backend`, luego `py -3.13 -m venv .venv`,
   `.venv\Scripts\python -m pip install -r requirements.txt` y
   `.venv\Scripts\python -m uvicorn app.main:app --reload` → `GET /health`.
+  `backend/.env` lleva `DATABASE_URL` = `DATABASE_PUBLIC_URL` del Postgres
+  de Railway (proxy público). No hay Postgres local ni Docker en la
+  máquina.
+- Migraciones: `.venv\Scripts\alembic upgrade head`. Para comprobar que
+  modelos y base coinciden: `.venv\Scripts\alembic check`.
 
 ## Roadmap (11 fases)
 
 1. ✅ **Monorepo** (2026-11-23): esqueleto pnpm (mobile/admin/backend/
    shared) con los fixes de pnpm+Metro. Verificado: bundle Android con una
    sola copia de React, `vite build` y oxlint limpios, `/health` responde.
-2. Modelo de datos + `GET /daily-quote`: `Quote`, `Reflection` (con
-   `action`, estados editoriales y `mood_tags`), `DailyQuote`; Alembic.
-3. Proyecto Railway nuevo: backend + Postgres sin acceso público.
+2. ✅ **Modelo de datos + `GET /daily-reflection`** (2026-11-23). Ver
+   "Modelo de datos" abajo. Verificado contra el Postgres de Railway:
+   published de hoy → 200; `reviewed` → 404 (tanto por fecha como por
+   id); el CHECK rechaza estados inválidos; `quote` duplicada rechazada;
+   `alembic check` sin diferencias.
+3. Proyecto Railway nuevo: deploy del backend. (El **Postgres ya existe**,
+   creado en la fase 2, PostgreSQL 18, **con el proxy público ABIERTO**
+   para desarrollo. Cerrarlo antes de lanzar, como en Versículo.)
 4. App Expo consumiendo el backend real (TanStack Query).
 5. Sistema de diseño propio + modo oscuro.
 6. Identidad anónima + favoritos + historial + diario personal (con

@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers import daily_reflection
+
 app = FastAPI(title="Reflexion Diaria API")
 
 # El panel admin corre en el navegador (la app movil no aplica CORS).
@@ -12,6 +14,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(daily_reflection.router)
 
 
 @app.get("/health")
