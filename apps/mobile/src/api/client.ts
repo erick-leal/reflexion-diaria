@@ -6,6 +6,9 @@ if (!API_URL) {
   throw new Error("Falta EXPO_PUBLIC_API_URL. Defínela en apps/mobile/.env");
 }
 
+/** Página pública de la política de privacidad (la sirve el backend). */
+export const PRIVACY_URL = `${API_URL}/privacy`;
+
 /** Error HTTP con su código, para que cada hook decida qué significa (ej. 404 = "aún no hay contenido"). */
 export class ApiError extends Error {
   constructor(

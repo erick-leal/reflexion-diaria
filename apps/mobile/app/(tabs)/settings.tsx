@@ -1,7 +1,9 @@
 import Constants from "expo-constants";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Alert, Linking, ScrollView, View } from "react-native";
 
+import { PRIVACY_URL } from "../../src/api/client";
+import { useDeleteMyData } from "../../src/api/useDeleteMyData";
 import { AppText } from "../../src/components/AppText";
 import { Button } from "../../src/components/Button";
 import { ReminderRow } from "../../src/components/ReminderRow";
@@ -33,6 +35,7 @@ export default function SettingsScreen() {
   const { settings, update } = useSettings();
   const activate = useActivateReminders();
   const [permissionDenied, setPermissionDenied] = useState(false);
+  const deleteData = useDeleteMyData();
 
   const toggle = async (which: "morning" | "night", on: boolean) => {
     if (!on) {
@@ -41,6 +44,18 @@ export default function SettingsScreen() {
     }
     const result = await activate({ [which]: true });
     setPermissionDenied(result === "denied");
+  };
+
+  const confirmDelete = () => {
+    if (deleteData.isPending) return;
+    Alert.alert(
+      "¿Borrar tus datos?",
+      "Se borrarán para siempre tus favoritos, las acciones que marcaste y las notas de tu diario. Tus ajustes se mantienen.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Borrar", style: "destructive", onPress: () => deleteData.mutate() },
+      ],
+    );
   };
 
   return (
@@ -88,6 +103,30 @@ export default function SettingsScreen() {
               </AppText>
               <Button label="Abrir ajustes del teléfono" variant="secondary" onPress={openSystemSettings} />
             </View>
+          ) : null}
+        </Section>
+
+        <Section
+          title="Tus datos"
+          hint="No usamos cuentas: tus favoritos y tu diario van ligados a un código anónimo de este teléfono."
+        >
+          <Button
+            label="Política de privacidad"
+            variant="secondary"
+            onPress={() => Linking.openURL(PRIVACY_URL)}
+          />
+          <Button
+            label={deleteData.isPending ? "Borrando…" : "Borrar mis datos"}
+            variant="secondary"
+            onPress={confirmDelete}
+          />
+          {deleteData.isSuccess ? (
+            <AppText variant="caption">Listo: se borraron tus favoritos y tu diario.</AppText>
+          ) : null}
+          {deleteData.isError ? (
+            <AppText variant="caption" style={{ color: theme.colors.error }}>
+              No se pudieron borrar. Revisa tu conexión e inténtalo de nuevo.
+            </AppText>
           ) : null}
         </Section>
 

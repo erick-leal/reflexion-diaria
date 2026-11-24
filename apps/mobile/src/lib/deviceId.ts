@@ -27,3 +27,9 @@ export function getDeviceId(): Promise<string> {
   }
   return pending;
 }
+
+/** Olvida la identidad actual ("Borrar mis datos"): la proxima request genera un UUID nuevo. */
+export async function resetDeviceId(): Promise<void> {
+  pending = null;
+  await AsyncStorage.removeItem(STORAGE_KEY);
+}
