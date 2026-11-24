@@ -52,6 +52,42 @@ def save(img, path, opaque=False):
     print(f"  {path.relative_to(path.parents[2])}  {img.size[0]}px")
 
 
+MANROPE_DIR = Path(__file__).resolve().parent.parent / "apps/mobile/node_modules/@expo-google-fonts/manrope"
+SUBTITLE_GREEN = (0xD4, 0xEE, 0xE2)
+
+
+def feature_graphic():
+    """Imagen destacada de Google Play (1024 x 500, sin transparencia)."""
+    from PIL import ImageFont
+
+    w, h = 1024 * SS, 500 * SS
+    img = Image.new("RGB", (w, h), ACCENT_LIGHT)
+    draw = ImageDraw.Draw(img)
+
+    title = ImageFont.truetype(str(MANROPE_DIR / "700Bold/Manrope_700Bold.ttf"), 66 * SS)
+    sub = ImageFont.truetype(str(MANROPE_DIR / "500Medium/Manrope_500Medium.ttf"), 30 * SS)
+    lines = [("Un paso a la vez", title, WHITE, 0),
+             ("Una frase, una reflexión", sub, SUBTITLE_GREEN, 24 * SS),
+             ("y una acción para hoy.", sub, SUBTITLE_GREEN, 8 * SS)]
+
+    # Escalera + texto como un solo grupo centrado en el lienzo.
+    scale = 180 * SS / GLYPH_H
+    gap = 56 * SS
+    text_w = max(draw.textbbox((0, 0), t, font=f)[2] for t, f, _, _ in lines)
+    ox = (w - (GLYPH_W * scale + gap + text_w)) / 2
+    oy = (h - GLYPH_H * scale) / 2
+    draw.polygon([(ox + x * scale, oy + y * scale) for x, y in STAIRS], fill=WHITE)
+    tx = ox + GLYPH_W * scale + gap
+    heights = [draw.textbbox((0, 0), t, font=f)[3] for t, f, _, _ in lines]
+    total = sum(heights) + sum(gap for *_, gap in lines)
+    y = (h - total) / 2
+    for (text, font, color, gap), lh in zip(lines, heights):
+        y += gap
+        draw.text((tx, y), text, font=font, fill=color)
+        y += lh
+    return img.resize((1024, 500), Image.LANCZOS)
+
+
 def main():
     # Ícono "legacy"/iOS: fondo verde a sangre (el sistema pone la máscara).
     save(stairs_layer(1024, 0.56, WHITE, ACCENT_LIGHT), OUT_DIR / "icon.png", opaque=True)
@@ -72,6 +108,7 @@ def main():
 
     # Ícono de la ficha de Google Play (512 x 512, sin transparencia).
     save(stairs_layer(512, 0.56, WHITE, ACCENT_LIGHT), STORE_DIR / "icon-512.png", opaque=True)
+    save(feature_graphic(), STORE_DIR / "feature-graphic.png", opaque=True)
 
 
 if __name__ == "__main__":
