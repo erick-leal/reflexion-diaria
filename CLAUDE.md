@@ -2,18 +2,14 @@
 
 ## ▶ Cómo retomar / próximo paso (actualizar al cerrar cada fase)
 
-**Estado al 2026-11-24:** fases 1–9 cerradas; Fase 10 casi cerrada.
-- ✅ 10.1 Guía editorial aprobada: `docs/guia-editorial.md`.
-- ✅ 10.2 Lote 1 cargado en producción: 45 reflexiones en `ai_generated`
-  (`scripts/content/lote_01.py`, cargado con `scripts/seed_content.py`).
-- ✅ 10.3 Cron `auto-schedule` creado en Railway (ver "Cron de contenido").
-- ⏳ **10.4 Falta:** Erick revisa el lote en el admin y marca revisadas
-  (mínimo 3–4). Después: correr el cron (esperar el próximo de las 09:00
-  UTC o "Run now" en Railway) y verificar que `/daily-reflection` da 200 en
-  producción y que la app muestra la reflexión real en Expo Go. Mientras
-  no haya `reviewed`, el cron sale en rojo (exit 1), y eso es lo correcto.
+**Estado al 2026-11-24:** fases 1–10 cerradas. Producción tiene contenido
+real: el cron programa solo y `/daily-reflection` responde 200. Quedan
+~42 `reviewed` sin programar (más de un mes). Cuando el admin avise de
+menos de 7 revisadas, hacer un lote nuevo (ver "Contenido y cron").
 
-**Próximo paso después de 10.4: Fase 11** (ícono, splash, EAS, Play Store).
+**Próximo paso: Fase 11** (ícono, splash, EAS preview/production, ficha en
+Google Play). Como siempre: proponer y esperar la aprobación de Erick en
+cada subpaso.
 
 **Pendientes sueltos (no olvidar):**
 - **Cerrar el proxy público del Postgres** antes de lanzar (Fase 11).
@@ -461,8 +457,13 @@ Mobile Engineer/Architect/mentor técnico:
      búsqueda, crear/editar en `<dialog>`, marcar revisadas en lote) y
      Calendario. La config de Firebase va en el código. React del admin
      fijado **exacto** en `19.2.3` (igual que mobile).
-10. ⏳ **Guía editorial + lote 1 + cron `auto-schedule`** (2026-11-24).
-    Ver "Contenido y cron". Falta la verificación de punta a punta (10.4),
-    que depende de la revisión de Erick.
+10. ✅ **Guía editorial + lote 1 + cron `auto-schedule`** (2026-11-24).
+    Ver "Contenido y cron". Verificado de punta a punta: Erick revisó las
+    45 en el admin; el "Run now" del cron en Railway programó del 24 al 26
+    de noviembre (exit 0); `/daily-reflection` responde 200 en producción,
+    los días futuros dan 404 por id, y la app muestra la reflexión real en
+    Expo Go. El primer intento de revisión no llegó al backend (no hubo
+    llamadas en los logs) y se resolvió recargando el admin: si una acción
+    del admin "no queda", mirar primero los logs del backend.
 11. Identidad visual (ícono, splash) + EAS (preview APK, production AAB
     con R8) + ficha en Google Play.
