@@ -1,4 +1,57 @@
-# Reflexión Diaria
+# Reflexión Diaria (nombre visible: "Un paso a la vez")
+
+## ▶ Cómo retomar / próximo paso (actualizar al cerrar cada fase)
+
+**Estado al 2026-11-24:** fases 1–9 cerradas. Backend, app (en Expo Go) y
+panel admin funcionan en producción. **Producción no tiene contenido real**
+(0 reflexiones): `/daily-reflection` da 404 hasta la Fase 10.
+
+**Próximo paso: Fase 10, contenido + cron.** Como siempre: proponer y
+esperar la aprobación de Erick en cada subpaso.
+1. **Guía editorial** de la voz práctica/accionable (qué hace buena una
+   frase, una reflexión y una acción; qué evitar: frases de terceros,
+   hustle, positividad tóxica, tono de taza). Proponerla a Erick y que la
+   ajuste antes de generar nada. Guardarla en el repo (p. ej.
+   `docs/guia-editorial.md`).
+2. **Primer lote** (30–60) escrito con IA según la guía, con `mood_tags`
+   de `MOOD_TAGS` (afinar la lista si hace falta: está en
+   `backend/app/constants.py` + `packages/shared`). Cargarlo con un script
+   de seed **idempotente y con `--check`** (ver `scripts/` de Versículo)
+   en status **`ai_generated`**, `source="ai"`. Erick lo revisa en el
+   admin y usa "Marcar como revisadas". Nunca publicar sin revisión.
+3. **Cron `auto-schedule`**: servicio Railway aparte que corre a diario y
+   mantiene 3 días programados tomando `reviewed` al azar y pasándolos a
+   `published`. Si no hay `reviewed`, reusa `published` fuera de un
+   cooldown de 90 días. **Debe salir con exit code 1 si un día queda sin
+   contenido** (incidente de Versículo, ver su `CLAUDE.md`). Usar
+   `today()` de `app/core/dates.py`.
+4. Verificar de punta a punta: `/daily-reflection` responde 200 en
+   producción y la app muestra la reflexión real en Expo Go.
+
+**Pendientes sueltos (no olvidar):**
+- **Cerrar el proxy público del Postgres** antes de lanzar (Fase 11).
+- **Confirmar que el pre-deploy aplica migraciones** con la primera
+  migración nueva (mirar el log del deploy en Railway).
+- `backend/railway.json` ya no lo lee Railway (Config as Code obsoleto):
+  la config real está en el dashboard. Se puede borrar.
+- Fase 11: volver a buscar "Un paso a la vez" en Play Store, ícono/splash,
+  `eas.json` (Node 22.13 + `EXPO_PUBLIC_API_URL`), revisar el peso del
+  bundle (fuente MaterialSymbols de ~976 KB que mete `expo-router`).
+
+**Para trabajar eficiente (consumo de tokens):**
+- **Una sesión por fase**, abierta en **esta carpeta**
+  (`…\repository\reflexion-diaria`), no en `versiculo-diario`: si no, se
+  cargan los dos `CLAUDE.md` y las terminales lanzan el proyecto equivocado.
+- Si una fase se alarga, usar `/compact`. Al cerrar cada fase, actualizar
+  esta sección y hacer commit.
+- **Railway:** usar el conector MCP de Railway, no clics en el dashboard
+  con el navegador (las capturas de pantalla gastan mucho contexto y hubo
+  dos errores de clic). Para cosas de 1–2 clics en un dashboard, darle
+  instrucciones a Erick suele ser más barato.
+- Metro para probar en el teléfono: `pnpm.cmd mobile --clear` desde esta
+  carpeta (ver gotcha #4).
+
+---
 
 App móvil de frases motivacionales **originales**: una frase corta al día +
 una reflexión breve + **una acción concreta para hoy**. Notificaciones
