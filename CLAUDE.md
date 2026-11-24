@@ -61,8 +61,9 @@ Mobile Engineer/Architect/mentor técnico:
 
 ## Stack
 
-- **Mobile** (`apps/mobile`): React Native + Expo **SDK 54** + TypeScript,
-  Expo Router, TanStack Query (desde la Fase 4), StyleSheet.
+- **Mobile** (`apps/mobile`): React Native 0.86 + Expo **SDK 57** +
+  TypeScript, Expo Router, TanStack Query, StyleSheet. (Versículo sigue
+  en SDK 54: no copiar versiones de dependencias desde allá.)
 - **Admin** (`apps/admin`): React + Vite + TypeScript; Firebase Auth en la
   Fase 9.
 - **Backend** (`backend/`): FastAPI + SQLAlchemy 2.0 + Alembic +
@@ -76,13 +77,28 @@ Mobile Engineer/Architect/mentor técnico:
    clásico de npm.
 2. **Metro con hierarchical lookup ACTIVO**: no poner
    `disableHierarchicalLookup = true`; con pnpm se rompe.
-3. **Una sola copia de React en el bundle**: `metro.config.js` fuerza
-   `react`/`react-native` hacia `apps/mobile/node_modules`, porque el
-   admin usa React 19.2.x y mobile 19.1.0. Para verificarlo, en
-   `apps/mobile` correr `npx expo export --platform android --source-maps`;
-   en el `.map` debe aparecer UNA sola ruta `node_modules/react/index.js`
-   (`react@19.1.0`).
-4. **SDK 54 fijo**: Expo Go va detrás del último SDK.
+3. **Una sola copia de React**: el admin está fijado a la **misma versión
+   exacta de React que pide el SDK de Expo** (hoy `19.2.3`, en `react` y
+   `react-dom`), así que el lockfile tiene una sola versión. Si se sube el
+   SDK, alinear también el admin a la versión que fije
+   `npx expo install --fix`. Como red de seguridad, `metro.config.js`
+   además fuerza `react`/`react-native` hacia `apps/mobile/node_modules`.
+   Para verificarlo, en `apps/mobile` correr
+   `npx expo export --platform android --source-maps`; en el `.map` debe
+   aparecer UNA sola ruta `node_modules/react/index.js`.
+4. **El SDK debe coincidir con el Expo Go del teléfono.** Expo Go solo
+   abre proyectos de su mismo SDK y la Play Store lo actualiza sola. Por
+   eso el proyecto pasó de SDK 54 a **57** en la Fase 4 (2026-11-24), en
+   cuanto el Expo Go de Erick (Xiaomi 10T) se actualizó. Para subir de
+   SDK: `pnpm add expo@~<versión>`, después `npx expo install --fix`,
+   alinear React en el admin (#3), `pnpm dedupe` y `npx expo-doctor`
+   (debe pasar todos los chequeos). **Detener Metro antes de instalar**:
+   si está corriendo, el watcher se cae con `EBUSY`. Después, arrancar
+   con `--clear` y escanear el QR de nuevo, sin usar "Recently opened"
+   de Expo Go, que reabre la sesión vieja. En SDK 57 se quitó
+   `resolver.unstable_enableSymlinks` del `metro.config.js`: ya viene
+   activo por defecto y `expo-doctor` lo marca como un override
+   peligroso.
 5. **Node 22.13+**: pnpm 11 usa `node:sqlite`. Va fijado en `engines.node`
    y `.nvmrc`. En EAS hay que poner `"node": "22.13.0"` en cada perfil de
    `eas.json` (Fase 11). En Railway, `NIXPACKS_NODE_VERSION` no funciona.
@@ -174,7 +190,18 @@ Mobile Engineer/Architect/mentor técnico:
    "Infraestructura". Verificado: `/health` 200; producción lee la misma
    base (dato `published` temporal → 200, tras borrarlo → 404); la base
    quedó en la migración `37bf00893bb9`.
-4. App Expo consumiendo el backend real (TanStack Query).
+4. ✅ **App Expo consumiendo el backend real** (2026-11-24): incluye la
+   subida a SDK 57. `src/api/client.ts` lanza un `ApiError` con el código
+   HTTP. `useDailyReflection` devuelve `null` ante un 404, que es un
+   **estado vacío** y no un error, así que no se reintenta (en Versículo
+   un 404 se confundía con una caída de red). `app/index.tsx` tiene los
+   estados cargando, error con reintento, vacío y contenido (frase +
+   reflexión + caja "Para hoy"), y se puede deslizar para recargar.
+   `apps/mobile/.env` apunta a producción. Verificado en Expo Go en el
+   Xiaomi 10T de Erick, con un dato de prueba que ya se borró.
+   Pendiente para la fase de engagement: refrescar la reflexión al volver
+   la app al primer plano o al cambiar el día (hoy no se refresca sola si
+   la app queda abierta pasada la medianoche).
 5. Sistema de diseño propio + modo oscuro.
 6. Identidad anónima + favoritos + historial + diario personal (con
    "¿hiciste la acción de hoy?").

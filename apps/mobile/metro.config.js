@@ -15,7 +15,6 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(workspaceRoot, "node_modules"),
 ];
-config.resolver.unstable_enableSymlinks = true;
 
 // El monorepo tiene otra app (admin) con su propia version de React (para
 // web). Con hierarchical lookup activo, Metro a veces resolvia "react" hacia

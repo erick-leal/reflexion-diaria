@@ -1,3 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+minimumReleaseAgeExclude:
+  - '@expo/metro-runtime@57.0.19'
+  - expo-constants@57.0.25
+  - expo-router@57.0.32
