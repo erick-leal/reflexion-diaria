@@ -21,8 +21,19 @@ function ThemedStack() {
       <StatusBar style={theme.scheme === "dark" ? "light" : "dark"} />
       {/* contentStyle evita el flash blanco entre pantallas en modo oscuro. */}
       <Stack
-        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}
-      />
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: theme.colors.background },
+          headerStyle: { backgroundColor: theme.colors.background },
+          headerTintColor: theme.colors.textPrimary,
+          headerTitleStyle: { fontFamily: theme.fonts.bold, fontSize: 17 },
+          headerShadowVisible: false,
+        }}
+      >
+        <Stack.Screen name="(tabs)" />
+        {/* Detalle de un dia: encabezado nativo con boton atras y titulo = fecha. */}
+        <Stack.Screen name="day/[id]" options={{ headerShown: true, headerBackTitle: "Atrás" }} />
+      </Stack>
     </>
   );
 }

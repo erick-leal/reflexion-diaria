@@ -1,0 +1,29 @@
+/**
+ * "2026-11-24" -> Date LOCAL de ese dia. Ojo: new Date("2026-11-24") lo
+ * interpreta como medianoche UTC, que en Colombia es el 23 a las 19:00 y
+ * mostraria el dia anterior.
+ */
+export function parseISODate(iso: string): Date {
+  const [year, month, day] = iso.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** "2026-11-24" -> "martes 24 de noviembre" */
+export function formatLongDate(iso: string): string {
+  return parseISODate(iso).toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" });
+}
+
+/** Fecha local de hoy como "YYYY-MM-DD". */
+export function localISODate(date: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+export function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** "2026-11-24" -> "24 nov" */
+export function formatShortDate(iso: string): string {
+  return parseISODate(iso).toLocaleDateString("es", { day: "numeric", month: "short" }).replace(".", "");
+}

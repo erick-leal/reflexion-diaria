@@ -6,7 +6,7 @@ const flow: ReflectionStatus[] = ["draft", "ai_generated", "reviewed", "publishe
 export default function App() {
   return (
     <main style={{ fontFamily: "system-ui", padding: 32 }}>
-      <h1>Reflexión Diaria — Admin</h1>
+      <h1>Un paso a la vez — Admin</h1>
       <p>Flujo editorial: {flow.join(" → ")}</p>
     </main>
   );

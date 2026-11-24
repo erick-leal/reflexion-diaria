@@ -52,9 +52,17 @@ Mobile Engineer/Architect/mentor técnico:
   en la Fase 10.
 - **Identidad anónima** (UUID en el dispositivo, header `X-Device-Id`),
   igual que en Versículo.
-- **Nombre:** "Reflexión Diaria". **Package Android / bundle iOS:
-  `com.erickleal.reflexiondiaria`**, que es permanente una vez publicado
-  en Play.
+- **Nombre visible: "Un paso a la vez"** (propuesto por Erick el
+  2026-11-24; antes era "Reflexión Diaria"). Va en `app.json` → `name` y
+  en el título del admin. En una búsqueda rápida no apareció ninguna app
+  con ese nombre en Google Play; **volver a buscar en la Play Store antes
+  de publicar** (Fase 11). Lo interno **sigue llamándose
+  `reflexion-diaria`**: repo, carpeta, `slug`, `scheme`, proyecto Railway y
+  **package Android / bundle iOS `com.erickleal.reflexiondiaria`**. El
+  package no se ve en la tienda y es permanente una vez publicado, así que
+  no se toca.
+- **Encabezado de Hoy:** saludo según la hora del teléfono (Buenos
+  días/tardes/noches) + fecha, en vez de repetir el nombre de la app.
 - **Infraestructura propia**: proyecto Railway nuevo y proyecto Firebase
   nuevo, sin compartir nada con Versículo Diario. Así un deploy o una
   migración de una app nunca afecta a la otra.
@@ -99,6 +107,11 @@ Mobile Engineer/Architect/mentor técnico:
    `resolver.unstable_enableSymlinks` del `metro.config.js`: ya viene
    activo por defecto y `expo-doctor` lo marca como un override
    peligroso.
+   **Si Expo Go dice "the project you opened uses SDK 54", casi seguro
+   Metro se lanzó desde `versiculo-diario`**, que sigue en SDK 54: los dos
+   repos usan el mismo `pnpm.cmd mobile`. Ya pasó el 2026-11-24 (quedó en
+   el puerto 8082). Para comprobarlo, la línea `Starting project at …`
+   debe decir `reflexion-diaria\apps\mobile`.
 5. **Node 22.13+**: pnpm 11 usa `node:sqlite`. Va fijado en `engines.node`
    y `.nvmrc`. En EAS hay que poner `"node": "22.13.0"` en cada perfil de
    `eas.json` (Fase 11). En Railway, `NIXPACKS_NODE_VERSION` no funciona.
@@ -232,6 +245,28 @@ Mobile Engineer/Architect/mentor técnico:
    Pendiente para la fase de engagement: refrescar la reflexión al volver
    la app al primer plano o al cambiar el día (hoy no se refresca sola si
    la app queda abierta pasada la medianoche).
+6. 🚧 **Fase 6, en curso** (por subpasos, con aprobación entre cada uno):
+   - ✅ **6a, backend** (2026-11-24): `users` (anónimos), `favorites` y
+     `journal_entries` (nota + `action_done`, que solo se cambia hoy o
+     ayer), `GET /history?month=`, `GET /journal/stats` (conteo sin
+     rachas). Usuario con upsert `ON CONFLICT`. `queries.visible_daily()`
+     exige publicado y fecha ≤ hoy; antes se podían leer por id los días
+     futuros que el cron publica por adelantado (**Versículo tiene ese
+     mismo hueco**). 32/32 pruebas e2e.
+   - ✅ **6b, mobile: identidad, pestañas y favoritos** (2026-11-24,
+     probado en el Xiaomi). `src/lib/deviceId.ts` cachea la *promesa*:
+     sin carrera de dos UUID en el primer arranque. Pestañas Hoy /
+     Favoritos / Historial / Diario (`app/(tabs)`). El alto de la barra
+     suma `insets.bottom` a mano: con edge-to-edge de SDK 57 quedaba
+     pegada a los botones de Android. Corazón optimista
+     (`useToggleFavorite`) y detalle `app/day/[id].tsx`, que usa el cache
+     como `placeholderData` y no reintenta ante un 404.
+     Fechas: `parseISODate` evita el corrimiento UTC de
+     `new Date("YYYY-MM-DD")`.
+   - ⏳ 6c historial (calendario) · 6d diario + "¿hiciste la acción?".
+   - Hay **3 días de prueba publicados en producción**
+     (`reviewed_by='prueba-fase6b'`) para probar el historial; **borrarlos
+     al cerrar la Fase 6**.
 5. ✅ **Sistema de diseño "Claridad" + modo oscuro** (2026-11-24). Ver
    "Sistema de diseño" arriba. Revisado por Erick en Expo Go, en claro y
    en oscuro. A pedido suyo, la reflexión se centra verticalmente en el
