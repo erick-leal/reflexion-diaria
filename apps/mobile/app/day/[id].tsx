@@ -6,6 +6,7 @@ import { useDailyReflectionById } from "../../src/api/useDailyReflectionById";
 import { DayJournal } from "../../src/components/DayJournal";
 import { FavoriteButton } from "../../src/components/FavoriteButton";
 import { ReflectionCard } from "../../src/components/ReflectionCard";
+import { ShareButton } from "../../src/components/ShareButton";
 import { Screen } from "../../src/components/Screen";
 import { EmptyState, ErrorState, LoadingState } from "../../src/components/StateMessage";
 import { formatLongDate } from "../../src/lib/dates";
@@ -22,7 +23,14 @@ export default function DayScreen() {
       <Stack.Screen
         options={{
           title: data ? formatLongDate(data.date) : "",
-          headerRight: data ? () => <FavoriteButton daily={data} /> : undefined,
+          headerRight: data
+            ? () => (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
+                  <ShareButton daily={data} />
+                  <FavoriteButton daily={data} />
+                </View>
+              )
+            : undefined,
         }}
       />
       <ScrollView

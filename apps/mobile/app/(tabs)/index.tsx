@@ -5,6 +5,7 @@ import { AppText } from "../../src/components/AppText";
 import { DayJournal } from "../../src/components/DayJournal";
 import { FavoriteButton } from "../../src/components/FavoriteButton";
 import { ReflectionCard } from "../../src/components/ReflectionCard";
+import { ShareButton } from "../../src/components/ShareButton";
 import { Screen } from "../../src/components/Screen";
 import { EmptyState, ErrorState, LoadingState } from "../../src/components/StateMessage";
 import { capitalize, formatLongDate, localISODate } from "../../src/lib/dates";
@@ -46,7 +47,12 @@ export default function Home() {
             {/* Fecha del contenido si ya cargo; si no, la del telefono (el encabezado no espera a la red). */}
             <AppText variant="caption">{capitalize(formatLongDate(data?.date ?? localISODate()))}</AppText>
           </View>
-          {data ? <FavoriteButton daily={data} /> : null}
+          {data ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
+              <ShareButton daily={data} />
+              <FavoriteButton daily={data} />
+            </View>
+          ) : null}
         </View>
 
         {isPending ? (

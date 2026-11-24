@@ -324,7 +324,27 @@ Mobile Engineer/Architect/mentor técnico:
      hasta que iOS entre en alcance.
    - Expo Go no trae push remotas en Android desde SDK 53, pero las
      notificaciones **locales** sí funcionan (verificado).
-8. Compartir como imagen.
+8. ✅ **Compartir como imagen** (2026-11-24, probado en el Xiaomi).
+   Decisiones de Erick: formato **historia 9:16** con **frase + acción**
+   y un interruptor para sumar la nota del diario. `ShareButton` (junto al
+   corazón, en Hoy y en el detalle) abre `ShareSheet`; la tarjeta es
+   `ShareCard`, `react-native-view-shot` la captura y `expo-sharing` abre
+   el menú de compartir.
+   - **Fondos planos fijos** Verde (por defecto) / Claro / Noche en
+     `SHARE_BACKGROUNDS`, no imágenes JPG como en Versículo, y no
+     dependen del tema de la app. Los 12 pares texto/fondo cumplen AA (la
+     caja del verde se oscureció a `#16533F`: con `#2C7E63` quedaba en
+     3.87:1).
+   - **Gotcha de nitidez:** las opciones `width`/`height` de `captureRef`
+     solo **estiran** el bitmap de la vista. Por eso se captura una
+     **copia fuera de la pantalla** (`left: -10000`) dibujada a
+     `1080 / PixelRatio.get()` dp, es decir, 1080 px reales, sin bordes
+     redondeados (en el PNG quedarían esquinas transparentes). `ShareCard`
+     escala todas sus medidas con la prop `width`.
+   - La vista previa se adapta al alto de la pantalla (`previewWidth`)
+     para que tarjeta, fondos y botón entren sin scroll (pedido de Erick).
+     Si se agrega algo a la hoja, actualizar las constantes de alto de
+     `ShareSheet.tsx`.
 9. Panel admin completo + Firebase nuevo + deploy en Railway.
 10. Guía editorial + lotes de contenido (IA → `ai_generated` → revisión
     de Erick → `reviewed`) + cron `auto-schedule`.
