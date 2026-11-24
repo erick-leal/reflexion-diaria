@@ -5,6 +5,8 @@ import type { DailyReflection } from "@reflexion-diaria/shared";
 
 import { useJournalEntry, useUpdateJournal } from "../api/useJournal";
 import { canMarkAction } from "../lib/dates";
+import { useSettings } from "../lib/settings";
+import { useActivateReminders } from "../lib/useActivateReminders";
 import { useTheme } from "../theme";
 import { AppText } from "./AppText";
 import { Button } from "./Button";
@@ -18,6 +20,14 @@ export function DayJournal({ daily }: { daily: DailyReflection }) {
   const update = useUpdateJournal(daily);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  // Invitacion a recordatorios (decision de Erick): en el momento de mas
+  // motivacion, justo al marcar "Lo hice" por primera vez. Una sola vez.
+  const { settings, update: updateSettings } = useSettings();
+  const activateReminders = useActivateReminders();
+  const [justMarked, setJustMarked] = useState(false);
+  const [inviteDenied, setInviteDenied] = useState(false);
+  const showInvite =
+    justMarked && !settings.reminderInviteSeen && !settings.morningEnabled && !settings.nightEnabled;
 
   const actionDone = entry?.action_done ?? false;
   const markable = canMarkAction(daily.date);
@@ -49,7 +59,10 @@ export function DayJournal({ daily }: { daily: DailyReflection }) {
         <Pressable
           accessibilityRole="checkbox"
           accessibilityState={{ checked: actionDone }}
-          onPress={() => update.mutate({ action_done: !actionDone })}
+          onPress={() => {
+            update.mutate({ action_done: !actionDone });
+            if (!actionDone) setJustMarked(true);
+          }}
           style={({ pressed }) => ({
             flexDirection: "row",
             alignItems: "center",
@@ -77,6 +90,48 @@ export function DayJournal({ daily }: { daily: DailyReflection }) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
           <Ionicons name="checkmark-circle" size={20} color={theme.colors.accent} />
           <AppText style={{ color: theme.colors.accent }}>Hiciste la acción de este día</AppText>
+        </View>
+      ) : null}
+
+      {showInvite || inviteDenied ? (
+        <View
+          style={{
+            backgroundColor: theme.colors.surface,
+            borderRadius: theme.radii.md,
+            padding: theme.spacing.md,
+            gap: theme.spacing.sm,
+          }}
+        >
+          {inviteDenied ? (
+            <AppText>
+              Sin permiso de notificaciones no podemos recordártelo. Si cambias de opinión, actívalas en Ajustes.
+            </AppText>
+          ) : (
+            <>
+              <AppText variant="title" style={{ fontSize: 16 }}>
+                ¿Te recordamos mañana tu paso del día?
+              </AppText>
+              <AppText>
+                Un aviso por la mañana y otro por la noche, que no suena si ya hiciste la acción. Puedes cambiarlo en
+                Ajustes.
+              </AppText>
+              <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: theme.spacing.sm }}>
+                <Button
+                  label="Ahora no"
+                  variant="secondary"
+                  onPress={() => updateSettings({ reminderInviteSeen: true })}
+                />
+                <Button
+                  label="Sí, recuérdame"
+                  onPress={async () => {
+                    updateSettings({ reminderInviteSeen: true });
+                    const result = await activateReminders({ morning: true, night: true });
+                    setInviteDenied(result === "denied");
+                  }}
+                />
+              </View>
+            </>
+          )}
         </View>
       ) : null}
 

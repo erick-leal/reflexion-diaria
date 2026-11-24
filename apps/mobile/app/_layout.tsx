@@ -6,11 +6,14 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { setupNotifications } from "../src/lib/reminders";
+import { SettingsProvider, useSettings } from "../src/lib/settings";
 import { fontAssets, ThemeProvider, useTheme } from "../src/theme";
 
 // El splash se mantiene hasta que cargan las fuentes: sin esto, el primer
 // frame se dibuja con la fuente del sistema y "salta" a Manrope.
 SplashScreen.preventAutoHideAsync();
+setupNotifications();
 
 const queryClient = new QueryClient();
 
@@ -39,14 +42,26 @@ function ThemedStack() {
 }
 
 export default function RootLayout() {
+  return (
+    <SettingsProvider>
+      <AppShell />
+    </SettingsProvider>
+  );
+}
+
+function AppShell() {
   const [fontsLoaded, fontError] = useFonts(fontAssets);
+  // Se espera tambien a los ajustes: asi el primer frame ya usa el tema
+  // elegido (sin parpadeo claro -> oscuro). Leer AsyncStorage toma milisegundos.
+  const { loaded: settingsLoaded } = useSettings();
+  const ready = (fontsLoaded || fontError) && settingsLoaded;
 
   useEffect(() => {
     // Si las fuentes fallan, seguimos con la del sistema: nunca dejar la app en el splash.
-    if (fontsLoaded || fontError) SplashScreen.hideAsync();
-  }, [fontsLoaded, fontError]);
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!ready) return null;
 
   return (
     <QueryClientProvider client={queryClient}>

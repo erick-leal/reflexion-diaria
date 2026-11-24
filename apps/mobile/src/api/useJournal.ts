@@ -18,10 +18,11 @@ const journalKeys = {
 };
 
 /** Entrada de un dia; null si todavia no hay (no es un error). */
-export function useJournalEntry(dailyId: number) {
+export function useJournalEntry(dailyId: number, enabled = true) {
   return useQuery({
     queryKey: journalKeys.entry(dailyId),
     queryFn: () => userGet<JournalEntry | null>(`/journal/${dailyId}`),
+    enabled,
   });
 }
 

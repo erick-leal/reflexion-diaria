@@ -4,6 +4,7 @@ import type { ComponentProps } from "react";
 import type { ColorValue } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ReminderSync } from "../../src/components/ReminderSync";
 import { useTheme } from "../../src/theme";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -24,37 +25,45 @@ export default function TabsLayout() {
   const bottomGap = Math.max(insets.bottom, theme.spacing.sm) + theme.spacing.sm;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: theme.colors.accent,
-        tabBarInactiveTintColor: theme.colors.textMuted,
-        // Patron de teclado de Versiculo: la barra no tapa formularios (diario).
-        tabBarHideOnKeyboard: true,
-        tabBarLabelStyle: { fontFamily: theme.fonts.medium, fontSize: 11, marginTop: 2 },
-        tabBarStyle: {
-          backgroundColor: theme.colors.background,
-          borderTopColor: theme.colors.border,
-          height: 56 + bottomGap,
-          paddingTop: theme.spacing.sm,
-          paddingBottom: bottomGap,
-        },
-        sceneStyle: { backgroundColor: theme.colors.background },
-      }}
-    >
-      <Tabs.Screen name="index" options={{ title: "Hoy", tabBarIcon: tabIcon("sunny", "sunny-outline") }} />
-      <Tabs.Screen
-        name="favorites"
-        options={{ title: "Favoritos", tabBarIcon: tabIcon("heart", "heart-outline") }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{ title: "Historial", tabBarIcon: tabIcon("calendar", "calendar-outline") }}
-      />
-      <Tabs.Screen
-        name="journal"
-        options={{ title: "Diario", tabBarIcon: tabIcon("create", "create-outline") }}
-      />
-    </Tabs>
+    <>
+      {/* Sin UI: mantiene los recordatorios programados al dia. */}
+      <ReminderSync />
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: theme.colors.accent,
+          tabBarInactiveTintColor: theme.colors.textMuted,
+          // Patron de teclado de Versiculo: la barra no tapa formularios (diario).
+          tabBarHideOnKeyboard: true,
+          tabBarLabelStyle: { fontFamily: theme.fonts.medium, fontSize: 11, marginTop: 2 },
+          tabBarStyle: {
+            backgroundColor: theme.colors.background,
+            borderTopColor: theme.colors.border,
+            height: 56 + bottomGap,
+            paddingTop: theme.spacing.sm,
+            paddingBottom: bottomGap,
+          },
+          sceneStyle: { backgroundColor: theme.colors.background },
+        }}
+      >
+        <Tabs.Screen name="index" options={{ title: "Hoy", tabBarIcon: tabIcon("sunny", "sunny-outline") }} />
+        <Tabs.Screen
+          name="favorites"
+          options={{ title: "Favoritos", tabBarIcon: tabIcon("heart", "heart-outline") }}
+        />
+        <Tabs.Screen
+          name="history"
+          options={{ title: "Historial", tabBarIcon: tabIcon("calendar", "calendar-outline") }}
+        />
+        <Tabs.Screen
+          name="journal"
+          options={{ title: "Diario", tabBarIcon: tabIcon("create", "create-outline") }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{ title: "Ajustes", tabBarIcon: tabIcon("settings", "settings-outline") }}
+        />
+      </Tabs>
+    </>
   );
 }

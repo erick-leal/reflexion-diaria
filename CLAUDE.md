@@ -299,7 +299,31 @@ Mobile Engineer/Architect/mentor técnico:
    abajo.
 6. Identidad anónima + favoritos + historial + diario personal (con
    "¿hiciste la acción de hoy?").
-7. Recordatorios mañana/noche + Ajustes.
+7. ✅ **Recordatorios + Ajustes** (2026-11-24, probado en el Xiaomi:
+   tema, invitación y notificaciones reales de mañana y noche).
+   **Solo mobile, sin backend.** Decisiones de Erick:
+   - **Ajustes en el teléfono** (`src/lib/settings.tsx`, AsyncStorage
+     `settings-v1`, merge con defaults), no en el servidor como en
+     Versículo: el servidor nunca los usa, y así el tema se aplica antes
+     del primer frame (el layout no quita el splash hasta leerlos).
+     Apariencia Automático/Claro/Oscuro.
+   - **Noche "inteligente"**: no suena si ya se marcó "Lo hice" hoy. La
+     mañana es un trigger `DAILY`; la noche son triggers `DATE` sueltos
+     para los próximos 14 días (un trigger repetido no puede saltarse un
+     día). `ReminderSync` (sin UI, montado en `app/(tabs)/_layout.tsx`)
+     reprograma todo al abrir o volver a primer plano, al cambiar los
+     ajustes y al marcar o desmarcar la acción. `rescheduleReminders` se
+     encola para que dos reprogramaciones no se intercalen y dupliquen
+     notificaciones. Canal Android `recordatorios`.
+   - **Invitación al marcar "Lo hice" por primera vez** (no al abrir la
+     app): tarjeta inline en `DayJournal`, una sola vez
+     (`reminderInviteSeen`). La lógica de pedir permiso y activar vive
+     en `useActivateReminders`, compartida con Ajustes.
+   - Hora con `DateTimePickerAndroid.open` (API imperativa, el fix de
+     Versículo). Solo Android: en iOS la fila de la hora está desactivada
+     hasta que iOS entre en alcance.
+   - Expo Go no trae push remotas en Android desde SDK 53, pero las
+     notificaciones **locales** sí funcionan (verificado).
 8. Compartir como imagen.
 9. Panel admin completo + Firebase nuevo + deploy en Railway.
 10. Guía editorial + lotes de contenido (IA → `ai_generated` → revisión

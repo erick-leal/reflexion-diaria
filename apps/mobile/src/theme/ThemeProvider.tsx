@@ -1,6 +1,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useColorScheme } from "react-native";
 
+import { useSettings } from "../lib/settings";
 import { darkColors, lightColors, type ColorScheme } from "./colors";
 import { radii, spacing } from "./spacing";
 import { fontFamilies, typeScale } from "./typography";
@@ -16,10 +17,12 @@ export interface Theme {
 
 const ThemeContext = createContext<Theme | null>(null);
 
-// Por ahora sigue al sistema. La preferencia explicita Claro/Oscuro (guardada
-// en el backend) llega con Ajustes en la Fase 7: solo hay que resolverla aqui.
+// Preferencia de Ajustes (guardada en el telefono): "system" sigue al modo del
+// sistema; "light"/"dark" lo fuerzan.
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const scheme = useColorScheme() === "dark" ? "dark" : "light";
+  const systemScheme = useColorScheme() === "dark" ? "dark" : "light";
+  const { theme: preference } = useSettings().settings;
+  const scheme = preference === "system" ? systemScheme : preference;
   const value: Theme = {
     scheme,
     colors: scheme === "dark" ? darkColors : lightColors,
