@@ -38,3 +38,38 @@ export interface DailyReflection {
 export interface HealthResponse {
   status: "ok";
 }
+
+// --- Fase 6: favoritos, historial y diario (requieren header X-Device-Id) ---
+
+/** GET /favorites. Se agregan/quitan con PUT/DELETE /favorites/{daily_reflection_id} (idempotentes, 204). */
+export interface Favorite {
+  id: number;
+  created_at: string;
+  daily_reflection: DailyReflection;
+}
+
+/** GET /journal, GET/PUT /journal/{daily_reflection_id}. Una entrada por usuario y día. */
+export interface JournalEntry {
+  id: number;
+  note: string | null;
+  action_done: boolean;
+  updated_at: string;
+  daily_reflection: DailyReflection;
+}
+
+/**
+ * Body de PUT /journal/{daily_reflection_id}: parcial, solo se tocan los campos enviados.
+ * note vacía = borrar nota. action_done solo se puede cambiar hoy o ayer (si no, 422).
+ * Si queda sin nota ni acción, la entrada se borra y la respuesta es null.
+ */
+export interface JournalEntryUpdate {
+  note?: string | null;
+  action_done?: boolean;
+}
+
+/** GET /journal/stats?month=YYYY-MM. Conteo del mes, sin rachas (decisión de producto). */
+export interface JournalStats {
+  month: string;
+  actions_done: number;
+  notes: number;
+}

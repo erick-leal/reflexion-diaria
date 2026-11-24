@@ -1,7 +1,8 @@
+import uuid
 from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, Date, ForeignKey, Text, text
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, Text, UniqueConstraint, text
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -56,3 +57,61 @@ class DailyReflection(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     reflection: Mapped["Reflection"] = relationship()
+
+
+class User(Base):
+    """Usuario anonimo: el id ES el UUID generado en el dispositivo (X-Device-Id).
+
+    is_anonymous deja la puerta abierta a cuentas reales en el futuro sin
+    migrar los datos de quienes empezaron anonimos.
+    """
+
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    is_anonymous: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    last_seen_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class Favorite(Base):
+    # Sin index=True en user_id: el UNIQUE (user_id, daily_reflection_id) ya
+    # crea un indice que empieza por user_id y sirve para "los de este usuario".
+    __tablename__ = "favorites"
+    __table_args__ = (UniqueConstraint("user_id", "daily_reflection_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    daily_reflection_id: Mapped[int] = mapped_column(ForeignKey("daily_reflections.id"))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    daily_reflection: Mapped["DailyReflection"] = relationship()
+
+
+class JournalEntry(Base):
+    """Entrada del diario personal: una por usuario y dia.
+
+    Junta la nota libre (opcional) y el "hice la accion de hoy". El CHECK
+    impide filas vacias: si se borran ambas cosas, se borra la fila.
+    """
+
+    __tablename__ = "journal_entries"
+    __table_args__ = (
+        UniqueConstraint("user_id", "daily_reflection_id"),
+        CheckConstraint("note IS NOT NULL OR action_done", name="ck_journal_entries_not_empty"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    daily_reflection_id: Mapped[int] = mapped_column(ForeignKey("daily_reflections.id"))
+    note: Mapped[str | None] = mapped_column(Text)
+    action_done: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    action_done_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    daily_reflection: Mapped["DailyReflection"] = relationship()

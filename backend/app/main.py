@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import daily_reflection
+from app.routers import daily_reflection, favorites, history, journal
 
 app = FastAPI(title="Reflexion Diaria API")
 
@@ -16,6 +16,9 @@ app.add_middleware(
 )
 
 app.include_router(daily_reflection.router)
+app.include_router(favorites.router)
+app.include_router(history.router)
+app.include_router(journal.router)
 
 
 @app.get("/health")
