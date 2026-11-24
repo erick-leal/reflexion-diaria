@@ -19,6 +19,16 @@ export function localISODate(date: Date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+/** Date -> "YYYY-MM" (formato del parametro month del backend). */
+export function monthKey(date: Date): string {
+  return localISODate(date).slice(0, 7);
+}
+
+/** Date (cualquier dia del mes) -> "Noviembre 2026" */
+export function formatMonthYear(date: Date): string {
+  return capitalize(date.toLocaleDateString("es", { month: "long", year: "numeric" }));
+}
+
 export function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

@@ -111,7 +111,12 @@ Mobile Engineer/Architect/mentor técnico:
    Metro se lanzó desde `versiculo-diario`**, que sigue en SDK 54: los dos
    repos usan el mismo `pnpm.cmd mobile`. Ya pasó el 2026-11-24 (quedó en
    el puerto 8082). Para comprobarlo, la línea `Starting project at …`
-   debe decir `reflexion-diaria\apps\mobile`.
+   debe decir `reflexion-diaria\apps\mobile`. **Causa real:** las pestañas
+   del Terminal de la app de Claude se abren en `versiculo-diario`, la
+   carpeta de trabajo de la sesión que creó este proyecto. Lanzar con
+   `Set-Location -LiteralPath '…\reflexion-diaria'; pnpm.cmd mobile
+   --clear --port 8083` (puerto propio para no chocar con un Metro de
+   Versículo que siga abierto) y escanear ESE QR.
 5. **Node 22.13+**: pnpm 11 usa `node:sqlite`. Va fijado en `engines.node`
    y `.nvmrc`. En EAS hay que poner `"node": "22.13.0"` en cada perfil de
    `eas.json` (Fase 11). En Railway, `NIXPACKS_NODE_VERSION` no funciona.
@@ -263,7 +268,17 @@ Mobile Engineer/Architect/mentor técnico:
      como `placeholderData` y no reintenta ante un 404.
      Fechas: `parseISODate` evita el corrimiento UTC de
      `new Date("YYYY-MM-DD")`.
-   - ⏳ 6c historial (calendario) · 6d diario + "¿hiciste la acción?".
+   - ✅ **6c, historial** (2026-11-24, probado en el Xiaomi).
+     `HistoryCalendar` con semana de lunes a domingo; los días con
+     contenido usan el tono suave de `actionBackground`; hoy lleva un
+     anillo y los favoritos un punto (el espacio del punto siempre se
+     reserva para que las filas no salten). No navega más allá del mes
+     actual. Lista del mes debajo, de lo más reciente a lo más viejo.
+     `useHistory(month)` hace una request por mes con
+     `keepPreviousData`; mientras `isPlaceholderData` es verdadero, la
+     pantalla **no** muestra los datos del mes anterior como si fueran
+     del nuevo (muestra el loading en la zona de la lista).
+   - ⏳ 6d diario + "¿hiciste la acción?".
    - Hay **3 días de prueba publicados en producción**
      (`reviewed_by='prueba-fase6b'`) para probar el historial; **borrarlos
      al cerrar la Fase 6**.
