@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AdminReflection, ReflectionStatus } from "@reflexion-diaria/shared";
+import { MOOD_TAG_LABELS, type AdminReflection, type MoodTag, type ReflectionStatus } from "@reflexion-diaria/shared";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -151,7 +151,7 @@ export default function Reflections() {
                   {r.source === "ai" ? <span className="pill">IA</span> : null}
                   {r.mood_tags.map((t) => (
                     <span className="pill" key={t}>
-                      {t}
+                      {MOOD_TAG_LABELS[t as MoodTag] ?? t}
                     </span>
                   ))}
                 </div>

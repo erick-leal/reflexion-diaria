@@ -4,20 +4,38 @@
 /** Estados editoriales. Nada llega a la app sin pasar por `reviewed`. */
 export type ReflectionStatus = "draft" | "ai_generated" | "reviewed" | "published";
 
-/** Lista provisional (se afina con la guía editorial, Fase 10). Espejo de backend/app/constants.py. */
+/** Estados de ánimo (docs/guia-editorial.md). Espejo de backend/app/constants.py. */
 export const MOOD_TAGS = [
   "ansiedad",
   "desanimo",
   "agotamiento",
   "inseguridad",
   "enfoque",
-  "disciplina",
+  "constancia",
   "cambio",
   "relaciones",
   "gratitud",
   "calma",
+  "autocompasion",
+  "limites",
 ] as const;
 export type MoodTag = (typeof MOOD_TAGS)[number];
+
+/** Cómo se muestra cada etiqueta (los identificadores van sin tildes). */
+export const MOOD_TAG_LABELS: Record<MoodTag, string> = {
+  ansiedad: "Ansiedad",
+  desanimo: "Desánimo",
+  agotamiento: "Agotamiento",
+  inseguridad: "Inseguridad",
+  enfoque: "Enfoque",
+  constancia: "Constancia",
+  cambio: "Cambio",
+  relaciones: "Relaciones",
+  gratitud: "Gratitud",
+  calma: "Calma",
+  autocompasion: "Autocompasión",
+  limites: "Límites",
+};
 
 /** Frase + reflexión + acción del día. Sin autor: todo es voz editorial propia. */
 export interface Reflection {

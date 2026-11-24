@@ -1,4 +1,4 @@
-import { MOOD_TAGS, type AdminReflection, type MoodTag } from "@reflexion-diaria/shared";
+import { MOOD_TAG_LABELS, MOOD_TAGS, type AdminReflection, type MoodTag } from "@reflexion-diaria/shared";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 export interface ReflectionFormValues {
@@ -90,7 +90,7 @@ export function ReflectionForm({ reflection, saving, error, onSubmit, onClose }:
                 aria-pressed={values.mood_tags.includes(tag)}
                 onClick={() => toggleTag(tag)}
               >
-                {tag}
+                {MOOD_TAG_LABELS[tag]}
               </button>
             ))}
           </div>
