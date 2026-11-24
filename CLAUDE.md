@@ -250,7 +250,8 @@ Mobile Engineer/Architect/mentor técnico:
    Pendiente para la fase de engagement: refrescar la reflexión al volver
    la app al primer plano o al cambiar el día (hoy no se refresca sola si
    la app queda abierta pasada la medianoche).
-6. 🚧 **Fase 6, en curso** (por subpasos, con aprobación entre cada uno):
+6. ✅ **Fase 6, identidad anónima + favoritos + historial + diario**
+   (2026-11-24, por subpasos con aprobación entre cada uno):
    - ✅ **6a, backend** (2026-11-24): `users` (anónimos), `favorites` y
      `journal_entries` (nota + `action_done`, que solo se cambia hoy o
      ayer), `GET /history?month=`, `GET /journal/stats` (conteo sin
@@ -278,10 +279,19 @@ Mobile Engineer/Architect/mentor técnico:
      `keepPreviousData`; mientras `isPlaceholderData` es verdadero, la
      pantalla **no** muestra los datos del mes anterior como si fueran
      del nuevo (muestra el loading en la zona de la lista).
-   - ⏳ 6d diario + "¿hiciste la acción?".
-   - Hay **3 días de prueba publicados en producción**
-     (`reviewed_by='prueba-fase6b'`) para probar el historial; **borrarlos
-     al cerrar la Fase 6**.
+   - ✅ **6d, diario + "¿hiciste la acción?"** (2026-11-24, probado en el
+     Xiaomi). `DayJournal` va debajo de la `ReflectionCard` en Hoy y en
+     el detalle: botón "Lo hice" (solo hoy o ayer, `canMarkAction`; en
+     días más viejos es solo lectura) + nota opcional (máx. 2000
+     caracteres, `maxHeight`, `keyboardShouldPersistTaps="handled"`; el
+     modo edición se cierra **al tocar Guardar**, sin esperar al
+     servidor). `useUpdateJournal` es optimista sobre la entrada y la
+     lista; todas las claves cuelgan de `["journal"]`. Pestaña Diario:
+     resumen del mes sin rachas (con 0 invita, no reprocha) + lista. En
+     el calendario, acción hecha = círculo sólido de acento, hoy = anillo
+     `textPrimary`, favorito = punto, y hay leyenda.
+   - Datos de prueba borrados de producción al cerrar la fase (quedó solo
+     el usuario anónimo del teléfono de Erick).
 5. ✅ **Sistema de diseño "Claridad" + modo oscuro** (2026-11-24). Ver
    "Sistema de diseño" arriba. Revisado por Erick en Expo Go, en claro y
    en oscuro. A pedido suyo, la reflexión se centra verticalmente en el

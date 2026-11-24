@@ -3,6 +3,7 @@ import { RefreshControl, ScrollView, View } from "react-native";
 
 import { useFavorites } from "../../src/api/useFavorites";
 import { useHistory } from "../../src/api/useHistory";
+import { useJournalList } from "../../src/api/useJournal";
 import { AppText } from "../../src/components/AppText";
 import { HistoryCalendar } from "../../src/components/HistoryCalendar";
 import { ReflectionListItem } from "../../src/components/ReflectionListItem";
@@ -22,9 +23,15 @@ export default function HistoryScreen() {
   const history = useHistory(monthKey(month));
   const favorites = useFavorites();
 
+  const journal = useJournalList();
+
   const favoriteIds = useMemo(
     () => new Set((favorites.data ?? []).map((f) => f.daily_reflection.id)),
     [favorites.data],
+  );
+  const doneIds = useMemo(
+    () => new Set((journal.data ?? []).filter((e) => e.action_done).map((e) => e.daily_reflection.id)),
+    [journal.data],
   );
 
   // Con keepPreviousData, mientras carga un mes nuevo `data` es la del mes
@@ -49,6 +56,7 @@ export default function HistoryScreen() {
             onRefresh={() => {
               history.refetch();
               favorites.refetch();
+              journal.refetch();
             }}
             tintColor={theme.colors.accent}
             colors={[theme.colors.accent]}
@@ -58,7 +66,13 @@ export default function HistoryScreen() {
       >
         <AppText variant="label">Historial</AppText>
 
-        <HistoryCalendar month={month} days={days} favoriteIds={favoriteIds} onChangeMonth={setMonth} />
+        <HistoryCalendar
+          month={month}
+          days={days}
+          favoriteIds={favoriteIds}
+          doneIds={doneIds}
+          onChangeMonth={setMonth}
+        />
 
         {/* Estados en el lugar de la lista del mes (donde ira la data), con
             alto minimo para que el calendario no salte al cambiar de estado. */}

@@ -3,6 +3,7 @@ import { ScrollView, View } from "react-native";
 
 import { ApiError } from "../../src/api/client";
 import { useDailyReflectionById } from "../../src/api/useDailyReflectionById";
+import { DayJournal } from "../../src/components/DayJournal";
 import { FavoriteButton } from "../../src/components/FavoriteButton";
 import { ReflectionCard } from "../../src/components/ReflectionCard";
 import { Screen } from "../../src/components/Screen";
@@ -24,7 +25,10 @@ export default function DayScreen() {
           headerRight: data ? () => <FavoriteButton daily={data} /> : undefined,
         }}
       />
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: theme.spacing.lg }}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1, padding: theme.spacing.lg }}
+      >
         {isPending ? (
           <LoadingState />
         ) : error instanceof ApiError && error.status === 404 ? (
@@ -32,8 +36,9 @@ export default function DayScreen() {
         ) : isError ? (
           <ErrorState message="No pudimos cargar esta reflexión." onRetry={() => refetch()} />
         ) : (
-          <View style={{ flex: 1, justifyContent: "center", paddingBottom: theme.spacing.xl }}>
+          <View style={{ flex: 1, justifyContent: "center", paddingBottom: theme.spacing.xl, gap: theme.spacing.lg }}>
             <ReflectionCard reflection={data.reflection} />
+            <DayJournal daily={data} />
           </View>
         )}
       </ScrollView>

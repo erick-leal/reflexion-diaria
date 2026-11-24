@@ -16,10 +16,12 @@ interface HistoryCalendarProps {
   month: Date;
   days: DailyReflection[];
   favoriteIds: Set<number>;
+  /** Dias en los que el usuario marco "Lo hice". */
+  doneIds: Set<number>;
   onChangeMonth: (month: Date) => void;
 }
 
-export function HistoryCalendar({ month, days, favoriteIds, onChangeMonth }: HistoryCalendarProps) {
+export function HistoryCalendar({ month, days, favoriteIds, doneIds, onChangeMonth }: HistoryCalendarProps) {
   const theme = useTheme();
   const todayKey = localISODate();
 
@@ -92,6 +94,7 @@ export function HistoryCalendar({ month, days, favoriteIds, onChangeMonth }: His
             const entry = byDate.get(key);
             const isToday = key === todayKey;
             const isFavorite = entry ? favoriteIds.has(entry.id) : false;
+            const isDone = entry ? doneIds.has(entry.id) : false;
 
             return (
               <View key={dayIndex} style={styles.cell}>
@@ -100,19 +103,24 @@ export function HistoryCalendar({ month, days, favoriteIds, onChangeMonth }: His
                   onPress={() => entry && router.push(`/day/${entry.id}`)}
                   accessibilityRole={entry ? "button" : undefined}
                   accessibilityLabel={
-                    entry ? `Ver la reflexión del ${date.getDate()}${isFavorite ? ", favorita" : ""}` : undefined
+                    entry
+                      ? `Ver la reflexión del ${date.getDate()}${isDone ? ", acción hecha" : ""}${isFavorite ? ", favorita" : ""}`
+                      : undefined
                   }
                   style={({ pressed }) => [
                     styles.day,
                     entry && { backgroundColor: theme.colors.actionBackground },
-                    isToday && { borderWidth: 2, borderColor: theme.colors.accent },
+                    // Accion hecha = circulo solido: los dias en que actuaste resaltan.
+                    isDone && { backgroundColor: theme.colors.accent },
+                    // Anillo de hoy en textPrimary: se distingue tambien sobre el circulo solido.
+                    isToday && { borderWidth: 2, borderColor: theme.colors.textPrimary },
                     pressed && { opacity: 0.6 },
                   ]}
                 >
                   <AppText
                     style={{
                       fontFamily: entry ? theme.fonts.bold : theme.fonts.regular,
-                      color: entry ? theme.colors.actionText : theme.colors.textMuted,
+                      color: isDone ? theme.colors.onAccent : entry ? theme.colors.actionText : theme.colors.textMuted,
                     }}
                   >
                     {date.getDate()}
@@ -127,6 +135,17 @@ export function HistoryCalendar({ month, days, favoriteIds, onChangeMonth }: His
           })}
         </View>
       ))}
+
+      <View style={styles.legend}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendSwatch, { backgroundColor: theme.colors.accent }]} />
+          <AppText variant="caption">Acción hecha</AppText>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.dot, { backgroundColor: theme.colors.accent }]} />
+          <AppText variant="caption">Favorito</AppText>
+        </View>
+      </View>
     </View>
   );
 }
@@ -139,4 +158,7 @@ const styles = StyleSheet.create({
   center: { textAlign: "center" },
   day: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
   dot: { width: 5, height: 5, borderRadius: 3 },
+  legend: { flexDirection: "row", justifyContent: "center", gap: 20, paddingTop: 8 },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  legendSwatch: { width: 12, height: 12, borderRadius: 6 },
 });

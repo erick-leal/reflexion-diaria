@@ -2,6 +2,7 @@ import { RefreshControl, ScrollView, View } from "react-native";
 
 import { useDailyReflection } from "../../src/api/useDailyReflection";
 import { AppText } from "../../src/components/AppText";
+import { DayJournal } from "../../src/components/DayJournal";
 import { FavoriteButton } from "../../src/components/FavoriteButton";
 import { ReflectionCard } from "../../src/components/ReflectionCard";
 import { Screen } from "../../src/components/Screen";
@@ -18,6 +19,9 @@ export default function Home() {
     // edges solo "top": abajo esta la barra de pestañas, que ya respeta el area segura.
     <Screen edges={["top"]}>
       <ScrollView
+        // "handled": tocar Guardar con el teclado abierto guarda a la primera
+        // (sin esto, el primer toque solo cierra el teclado).
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           flexGrow: 1,
           padding: theme.spacing.lg,
@@ -61,8 +65,9 @@ export default function Home() {
           // flex:1 + justifyContent center: una reflexion corta queda centrada en el
           // espacio libre; una larga ocupa mas que la pantalla y el ScrollView la
           // desplaza normalmente (flexGrow en el contentContainer).
-          <View style={{ flex: 1, justifyContent: "center", paddingBottom: theme.spacing.xl }}>
+          <View style={{ flex: 1, justifyContent: "center", paddingBottom: theme.spacing.xl, gap: theme.spacing.lg }}>
             <ReflectionCard reflection={data.reflection} />
+            <DayJournal daily={data} />
           </View>
         )}
       </ScrollView>

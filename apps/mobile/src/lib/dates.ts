@@ -19,6 +19,17 @@ export function localISODate(date: Date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+/**
+ * La accion solo se marca hoy o ayer (decision de producto). El backend es
+ * quien decide (con la fecha de Bogota); esto solo evita ofrecer un boton
+ * que el servidor va a rechazar.
+ */
+export function canMarkAction(iso: string): boolean {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return iso >= localISODate(yesterday) && iso <= localISODate();
+}
+
 /** Date -> "YYYY-MM" (formato del parametro month del backend). */
 export function monthKey(date: Date): string {
   return localISODate(date).slice(0, 7);
