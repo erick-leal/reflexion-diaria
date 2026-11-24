@@ -1,6 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
+# Scripts de instalacion permitidos (pnpm 11 los bloquea por defecto). Mismos que versiculo-diario.
+allowBuilds:
+  '@firebase/util': true
+  protobufjs: true
 minimumReleaseAgeExclude:
   - '@expo/metro-runtime@57.0.19'
   - expo-constants@57.0.25

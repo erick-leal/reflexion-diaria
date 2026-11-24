@@ -73,3 +73,55 @@ export interface JournalStats {
   actions_done: number;
   notes: number;
 }
+
+// --- Fase 9: panel admin (requieren Authorization: Bearer <ID token de Firebase>) ---
+// Espejo de backend/app/admin_schemas.py.
+
+export type ReflectionSource = "human" | "ai";
+
+/** GET /admin/reflections. A diferencia de la API pública, incluye los campos internos. */
+export interface AdminReflection {
+  id: number;
+  quote: string;
+  body: string;
+  action: string;
+  status: ReflectionStatus;
+  source: ReflectionSource;
+  reviewed_by: string | null;
+  mood_tags: MoodTag[];
+  created_at: string;
+  updated_at: string;
+  /** Fechas en que está programada (YYYY-MM-DD). */
+  scheduled_dates: string[];
+}
+
+/** POST /admin/reflections. No se crea directo en "published": publicar = programar una fecha. */
+export interface AdminReflectionCreate {
+  quote: string;
+  body: string;
+  action: string;
+  status?: "draft" | "reviewed";
+  mood_tags?: MoodTag[];
+}
+
+/** PUT /admin/reflections/{id} (parcial). */
+export type AdminReflectionUpdate = Partial<Omit<AdminReflectionCreate, "status">> & {
+  status?: "draft" | "ai_generated" | "reviewed";
+};
+
+/** GET /admin/reflections/stats */
+export interface AdminStats {
+  draft: number;
+  ai_generated: number;
+  reviewed: number;
+  published: number;
+  /** Días futuros ya programados (el colchón que mantiene el cron). */
+  scheduled_ahead: number;
+}
+
+/** GET/POST /admin/daily-reflections */
+export interface AdminDailyReflection {
+  id: number;
+  date: string;
+  reflection: AdminReflection;
+}
