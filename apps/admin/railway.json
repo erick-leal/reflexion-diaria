@@ -1,0 +1,12 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter admin build",
+    "watchPatterns": ["apps/admin/**", "packages/shared/**", "pnpm-lock.yaml", "package.json", "pnpm-workspace.yaml"]
+  },
+  "deploy": {
+    "startCommand": "pnpm --filter admin exec serve -s dist -l $PORT",
+    "healthcheckPath": "/",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
