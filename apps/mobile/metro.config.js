@@ -28,7 +28,20 @@ const forcedRoots = {
   "react-native": path.resolve(projectRoot, "node_modules/react-native"),
 };
 
+// expo-router 57 importa siempre su codigo de native tabs (desde
+// withLayoutContext, que usan Tabs y Stack), y en Android eso arrastra
+// expo-symbols y su fuente MaterialSymbols de ~976 KB. No usamos native
+// tabs ni SymbolView, asi que la fuente se reemplaza por un modulo vacio.
+// Si algun dia se usan en Android, sus iconos no se verian: quitar esto.
+// Si una version nueva cambia la ruta, esto deja de aplicar sin romper nada.
+const emptyModules = new Set([
+  "@expo-google-fonts/material-symbols/400Regular",
+]);
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (emptyModules.has(moduleName)) {
+    return { type: "empty" };
+  }
   for (const [pkg, root] of Object.entries(forcedRoots)) {
     if (moduleName === pkg || moduleName.startsWith(`${pkg}/`)) {
       const subpath = moduleName.slice(pkg.length); // "" o "/algo"
