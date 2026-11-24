@@ -2,31 +2,18 @@
 
 ## ▶ Cómo retomar / próximo paso (actualizar al cerrar cada fase)
 
-**Estado al 2026-11-24:** fases 1–9 cerradas. Backend, app (en Expo Go) y
-panel admin funcionan en producción. **Producción no tiene contenido real**
-(0 reflexiones): `/daily-reflection` da 404 hasta la Fase 10.
+**Estado al 2026-11-24:** fases 1–9 cerradas; Fase 10 casi cerrada.
+- ✅ 10.1 Guía editorial aprobada: `docs/guia-editorial.md`.
+- ✅ 10.2 Lote 1 cargado en producción: 45 reflexiones en `ai_generated`
+  (`scripts/content/lote_01.py`, cargado con `scripts/seed_content.py`).
+- ✅ 10.3 Cron `auto-schedule` creado en Railway (ver "Cron de contenido").
+- ⏳ **10.4 Falta:** Erick revisa el lote en el admin y marca revisadas
+  (mínimo 3–4). Después: correr el cron (esperar el próximo de las 09:00
+  UTC o "Run now" en Railway) y verificar que `/daily-reflection` da 200 en
+  producción y que la app muestra la reflexión real en Expo Go. Mientras
+  no haya `reviewed`, el cron sale en rojo (exit 1), y eso es lo correcto.
 
-**Próximo paso: Fase 10, contenido + cron.** Como siempre: proponer y
-esperar la aprobación de Erick en cada subpaso.
-1. **Guía editorial** de la voz práctica/accionable (qué hace buena una
-   frase, una reflexión y una acción; qué evitar: frases de terceros,
-   hustle, positividad tóxica, tono de taza). Proponerla a Erick y que la
-   ajuste antes de generar nada. Guardarla en el repo (p. ej.
-   `docs/guia-editorial.md`).
-2. **Primer lote** (30–60) escrito con IA según la guía, con `mood_tags`
-   de `MOOD_TAGS` (afinar la lista si hace falta: está en
-   `backend/app/constants.py` + `packages/shared`). Cargarlo con un script
-   de seed **idempotente y con `--check`** (ver `scripts/` de Versículo)
-   en status **`ai_generated`**, `source="ai"`. Erick lo revisa en el
-   admin y usa "Marcar como revisadas". Nunca publicar sin revisión.
-3. **Cron `auto-schedule`**: servicio Railway aparte que corre a diario y
-   mantiene 3 días programados tomando `reviewed` al azar y pasándolos a
-   `published`. Si no hay `reviewed`, reusa `published` fuera de un
-   cooldown de 90 días. **Debe salir con exit code 1 si un día queda sin
-   contenido** (incidente de Versículo, ver su `CLAUDE.md`). Usar
-   `today()` de `app/core/dates.py`.
-4. Verificar de punta a punta: `/daily-reflection` responde 200 en
-   producción y la app muestra la reflexión real en Expo Go.
+**Próximo paso después de 10.4: Fase 11** (ícono, splash, EAS, Play Store).
 
 **Pendientes sueltos (no olvidar):**
 - **Cerrar el proxy público del Postgres** antes de lanzar (Fase 11).
@@ -200,6 +187,10 @@ Mobile Engineer/Architect/mentor técnico:
     `https://reflexion-diaria-production.up.railway.app`.
   - **`admin`** (panel): `https://admin-production-23567d79.up.railway.app`.
   - **`Postgres`** 18.
+  - **`auto-schedule`** (cron de contenido, sin dominio): Root Directory
+    `/backend`, start `python -m scripts.auto_schedule`, cron
+    `0 9 * * *` (04:00 Bogotá), restart policy Never, watch paths
+    `/backend/**`, variable `DATABASE_URL = ${{Postgres.DATABASE_URL}}`.
 - **⚠️ Config as Code (`railway.json`) está obsoleto en Railway:** los
   servicios nuevos no pueden activarlo y los existentes dejan de leerlo el
   **2026-12-01**. Por eso **toda la configuración vive en el dashboard de
@@ -256,8 +247,30 @@ Mobile Engineer/Architect/mentor técnico:
 - Los endpoints públicos (`routers/daily_reflection.py`) parten todos de
   la consulta base `_published`. Cualquier endpoint público nuevo debe
   partir de ahí.
-- `MOOD_TAGS` es provisional (`app/constants.py` + `packages/shared`). Se
-  afina en la Fase 10.
+- `MOOD_TAGS` (12, definidas en la guía editorial) vive en
+  `app/constants.py` + `packages/shared`, con `MOOD_TAG_LABELS` (con
+  tildes) en shared. El admin valida contra la lista del backend, así que
+  al agregar una etiqueta hay que desplegar el backend antes de usarla.
+
+## Contenido y cron (Fase 10)
+
+- **Guía editorial:** `docs/guia-editorial.md` (voz, largos, test de la
+  acción, lista negra, checklist de revisión). Todo lote nuevo la sigue.
+- **Lotes:** `scripts/content/lote_XX.py` (lista `REFLECTIONS`). Se cargan
+  desde la raíz con
+  `backend/.venv/Scripts/python scripts/seed_content.py lote_XX --check`
+  (valida contra la guía y dice cuántas entrarían) y luego sin `--check`.
+  Entran en `ai_generated`/`source="ai"`. Es idempotente: salta las frases
+  que ya existen, sin pisar lo que Erick editó. En Git Bash, usar
+  `PYTHONIOENCODING=utf-8`.
+- **Cron `auto-schedule`** (`backend/scripts/auto_schedule.py`): llena
+  hoy y los 2 días siguientes. Toma una `reviewed` al azar y la pasa a
+  `published`; si no quedan, reutiliza una `published` fuera de un
+  cooldown de 90 días (medido contra la fecha que llena), y si no hay,
+  repite antes que dejar el día vacío. Nunca toma `draft`/`ai_generated`.
+  **Exit 1 si una fecha queda vacía.** Avisa en stderr si quedan menos de
+  7 revisadas. `--dry-run` no escribe. Si `/daily-reflection` da 404,
+  mirar primero los logs de este servicio.
 
 ## Sistema de diseño (apps/mobile/src/theme)
 
@@ -448,7 +461,8 @@ Mobile Engineer/Architect/mentor técnico:
      búsqueda, crear/editar en `<dialog>`, marcar revisadas en lote) y
      Calendario. La config de Firebase va en el código. React del admin
      fijado **exacto** en `19.2.3` (igual que mobile).
-10. Guía editorial + lotes de contenido (IA → `ai_generated` → revisión
-    de Erick → `reviewed`) + cron `auto-schedule`.
+10. ⏳ **Guía editorial + lote 1 + cron `auto-schedule`** (2026-11-24).
+    Ver "Contenido y cron". Falta la verificación de punta a punta (10.4),
+    que depende de la revisión de Erick.
 11. Identidad visual (ícono, splash) + EAS (preview APK, production AAB
     con R8) + ficha en Google Play.
