@@ -15,7 +15,17 @@
       "versionCode": 1,
       "predictiveBackGestureEnabled": false
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F6F8F6",
+          "dark": { "backgroundColor": "#0F1513" }
+        }
+      ]
+    ],
     "extra": {
       "router": {}
     }

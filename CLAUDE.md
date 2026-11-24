@@ -162,6 +162,36 @@ Mobile Engineer/Architect/mentor técnico:
 - `MOOD_TAGS` es provisional (`app/constants.py` + `packages/shared`). Se
   afina en la Fase 10.
 
+## Sistema de diseño (apps/mobile/src/theme)
+
+- **Dirección "Claridad"** (elegida por Erick entre 3 propuestas): fresca
+  y práctica, acento verde profundo (`#1F6B52` en claro, `#5CC49A` en
+  oscuro) y **una sola familia tipográfica, Manrope**. Se separa a
+  propósito del estilo serif y cálido de Versículo, para que las dos
+  apps no parezcan la misma marca.
+- **Colores:** tokens semánticos en `colors.ts` (`textPrimary/Secondary/
+  Muted`, `accent`/`onAccent`, `actionBackground/Label/Text` para la caja
+  "Para hoy", `surface`, `border`, `error`). **Nunca escribir hex en las
+  pantallas.** Los 20 pares texto/fondo cumplen WCAG AA (mínimo 4.69:1).
+  Si se cambia un color, volver a medir el contraste.
+- **Tipografía:** `typography.ts` importa solo los pesos usados (400, 500
+  y 700) por subpath (`@expo-google-fonts/manrope/400Regular`), no desde
+  la raíz del paquete, que metería los 7 pesos (~100 KB cada uno) en el
+  bundle. Escala: `quote`, `title`, `body`, `label`, `caption`, `button`.
+- **`ThemeProvider`** sigue el modo del sistema. La preferencia explícita
+  Claro/Oscuro de Ajustes (Fase 7) se resuelve ahí mismo. El splash se
+  mantiene hasta que cargan las fuentes (si fallan, se sigue con la del
+  sistema).
+- **Componentes base:** `AppText` (todo texto pasa por aquí), `Screen`
+  (SafeArea + KeyboardAvoidingView), `Button` (primary/secondary,
+  mínimo 44 px de alto), `StateMessage` (`LoadingState`/`ErrorState`/
+  `EmptyState`, que ocupan el espacio donde irá el contenido) y
+  `ReflectionCard` (frase + reflexión + "Para hoy", reutilizable en el
+  historial y en favoritos).
+- **Pendiente para la Fase 11 (tamaño del bundle):** `expo-router` 57 mete
+  una fuente MaterialSymbols de ~976 KB (vía `expo-symbols`, desde su
+  código de native tabs para Android) aunque no se usen native tabs.
+
 ## Comandos
 
 - Instalar: `pnpm install` (raíz).
@@ -202,7 +232,11 @@ Mobile Engineer/Architect/mentor técnico:
    Pendiente para la fase de engagement: refrescar la reflexión al volver
    la app al primer plano o al cambiar el día (hoy no se refresca sola si
    la app queda abierta pasada la medianoche).
-5. Sistema de diseño propio + modo oscuro.
+5. ✅ **Sistema de diseño "Claridad" + modo oscuro** (2026-11-24). Ver
+   "Sistema de diseño" arriba. Revisado por Erick en Expo Go, en claro y
+   en oscuro. A pedido suyo, la reflexión se centra verticalmente en el
+   espacio libre de Inicio, para que una frase corta no deje un hueco
+   abajo.
 6. Identidad anónima + favoritos + historial + diario personal (con
    "¿hiciste la acción de hoy?").
 7. Recordatorios mañana/noche + Ajustes.
