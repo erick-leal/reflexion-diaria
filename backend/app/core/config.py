@@ -10,6 +10,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=BACKEND_DIR / ".env", extra="ignore")
 
     database_url: str
+    # Panel admin (Fase 9). Opcionales A PROPOSITO: si faltan, solo los
+    # endpoints /admin responden 503; la API publica sigue funcionando (en
+    # Versiculo eran obligatorias y una variable olvidada tumbaba todo).
+    firebase_project_id: str | None = None  # no es secreto
+    admin_email: str | None = None
 
     @field_validator("database_url")
     @classmethod

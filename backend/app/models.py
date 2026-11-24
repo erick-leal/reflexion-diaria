@@ -41,6 +41,16 @@ class Reflection(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
+    # Solo lectura (para el admin): en que fechas esta programada. No cambia el
+    # esquema de la base, no requiere migracion.
+    daily_reflections: Mapped[list["DailyReflection"]] = relationship(
+        viewonly=True, order_by="DailyReflection.date"
+    )
+
+    @property
+    def scheduled_dates(self) -> list[date]:
+        return [d.date for d in self.daily_reflections]
+
 
 class DailyReflection(Base):
     """Que reflexion se muestra en cada fecha (una por dia).

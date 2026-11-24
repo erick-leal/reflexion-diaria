@@ -2,6 +2,10 @@ alembic==1.18.5
 fastapi==0.139.0
 psycopg[binary]==3.3.4
 pydantic-settings==2.14.2
+# PyJWT + cryptography: verificar los ID tokens de Firebase del admin.
+# NUNCA firebase-admin: en Versiculo tumbo produccion (OOM) por su peso.
+PyJWT[crypto]==2.13.0
+cryptography==50.0.2
 SQLAlchemy==2.0.51
 tzdata==2026.3
 uvicorn==0.51.0
