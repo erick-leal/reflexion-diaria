@@ -139,24 +139,50 @@ Mobile Engineer/Architect/mentor técnico:
 
 ## Infraestructura
 
-- **Backend:** `https://reflexion-diaria-production.up.railway.app`, en un
-  proyecto Railway propio (no es `diligent-reflection`, que es el de
-  Versículo). Servicios: backend (repo de GitHub, deploy automático en
-  cada push a `main`) + Postgres 18.
-- **Config del servicio como código:** `backend/railway.json`, con
-  migraciones en el pre-deploy (`alembic upgrade head`; si fallan, el
-  deploy se cancela y queda la versión anterior), arranque con uvicorn y
-  healthcheck en `/health`. En el dashboard solo quedan Root Directory =
-  `/backend`, Railway Config File = `/backend/railway.json` (ruta
-  absoluta: no se resuelve dentro del Root Directory) y la variable
-  `DATABASE_URL = ${{Postgres.DATABASE_URL}}` (URL privada, red interna).
-- **Migraciones:** se aplican solas al desplegar. No hay que correrlas a
-  mano contra producción, salvo en desarrollo local.
+- **Proyecto Railway** `steadfast-sparkle`
+  (id `e9629d7c-000f-42ca-8ad7-c16d14091f94`; no es `diligent-reflection`,
+  que es el de Versículo). Tres servicios, todos con deploy automático en
+  cada push a `main`:
+  - **`reflexion-diaria`** (backend):
+    `https://reflexion-diaria-production.up.railway.app`.
+  - **`admin`** (panel): `https://admin-production-23567d79.up.railway.app`.
+  - **`Postgres`** 18.
+- **⚠️ Config as Code (`railway.json`) está obsoleto en Railway:** los
+  servicios nuevos no pueden activarlo y los existentes dejan de leerlo el
+  **2026-12-01**. Por eso **toda la configuración vive en el dashboard de
+  cada servicio** (Settings), no en archivos del repo:
+  - **backend:** Root Directory `/backend`, **pre-deploy `alembic
+    upgrade head`** (si falla, el deploy se cancela y queda la versión
+    anterior), start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`,
+    healthcheck `/health`. Variables: `DATABASE_URL =
+    ${{Postgres.DATABASE_URL}}` (URL privada), `FIREBASE_PROJECT_ID`,
+    `ADMIN_EMAIL`.
+  - **admin:** Root Directory = raíz del monorepo (depende de
+    `packages/shared`). Build `pnpm install --frozen-lockfile && pnpm
+    --filter admin build`, start `pnpm --filter admin exec serve -s dist
+    -l $PORT` (`-s` = fallback SPA, para que `/reflexiones` funcione al
+    recargar), healthcheck `/`, watch paths `/apps/admin/**`,
+    `/packages/shared/**` y `/pnpm-lock.yaml` (no se redespliega con
+    cambios de backend o mobile). Puerto 8080. Sin variables: la config
+    de Firebase y la URL del backend van en el código, porque son públicas.
+  - `backend/railway.json` quedó en el repo como documentación de lo
+    mismo; puede borrarse.
+- **Migraciones:** se aplican solas en el pre-deploy. El pre-deploy se
+  configuró el 2026-11-24, y la primera migración nueva que se despliegue
+  confirma que corre (revisar el log del deploy).
 - **Postgres con el proxy público ABIERTO** mientras desarrollamos (lo
   usa `backend/.env` en local). **Cerrarlo antes de lanzar**, como en
   Versículo (gotcha #7 de su `CLAUDE.md`).
-- CORS: cuando se despliegue el admin (Fase 9), agregar su dominio en
-  `backend/app/main.py`.
+- **Si cambia el dominio del admin:** actualizar `allow_origins` en
+  `backend/app/main.py` **y** los dominios autorizados de Firebase Auth.
+- **Gotchas al operar Railway desde el navegador** (pasó el 2026-11-24):
+  escribir con el foco fuera de un campo dispara atajos que crean
+  servicios borrador (`function-bun`), y la lista de repos se reordena al
+  cargar, lo que provocó un clic sobre el repo equivocado. Ambos quedaron
+  como cambios *staged* y se descartaron en "Details". **Antes de
+  "Deploy" revisar siempre "Details"**, filtrar la lista de repos por
+  nombre y llenar los campos directamente. Ahora hay un **conector MCP de
+  Railway** disponible, preferible a operar el dashboard a mano.
 
 ## Modelo de datos (backend/app/models.py)
 
@@ -345,7 +371,30 @@ Mobile Engineer/Architect/mentor técnico:
      para que tarjeta, fondos y botón entren sin scroll (pedido de Erick).
      Si se agrega algo a la hoja, actualizar las constantes de alto de
      `ShareSheet.tsx`.
-9. Panel admin completo + Firebase nuevo + deploy en Railway.
+9. ✅ **Panel admin + Firebase + deploy** (2026-11-24; Erick entró en
+   producción con su cuenta).
+   - **Firebase** `un-paso-a-la-vez-3cc3f`: solo Email/Password, un
+     usuario (el de `ADMIN_EMAIL`), **registro público desactivado**,
+     dominio del admin autorizado.
+   - **Backend** (`app/admin_auth.py`): ID token verificado con
+     `PyJWKClient` (JWKS de Google) + correo == `ADMIN_EMAIL`, sin
+     distinguir mayúsculas. **Nunca `firebase-admin`.** Si faltan las
+     variables, `/admin` responde 503 y el resto de la API sigue viva.
+   - **Endpoints `/admin`** (`routers/admin.py`, `require_admin` aplicado
+     a nivel de router): reflexiones (listar con `status`/`q`, crear,
+     editar, `bulk-review`, borrar), `stats` (incluye `scheduled_ahead`) y
+     calendario (programar/quitar). **Reglas editoriales en el
+     servidor:** no se programa nada que no esté `reviewed` o
+     `published`; al programar queda `published`; no se crea ni edita a
+     mano a `published`; no se programan fechas pasadas; no se quitan hoy
+     ni fechas pasadas (ya las vieron usuarios); no se borra una
+     reflexión programada. 26/26 pruebas.
+   - **UI** (`apps/admin`): login, Resumen (con avisos si hay menos de 3
+     días programados o menos de 7 revisadas, para evitar el incidente
+     de 12 días sin contenido de Versículo), Reflexiones (filtros,
+     búsqueda, crear/editar en `<dialog>`, marcar revisadas en lote) y
+     Calendario. La config de Firebase va en el código. React del admin
+     fijado **exacto** en `19.2.3` (igual que mobile).
 10. Guía editorial + lotes de contenido (IA → `ai_generated` → revisión
     de Erick → `reviewed`) + cron `auto-schedule`.
 11. Identidad visual (ícono, splash) + EAS (preview APK, production AAB
