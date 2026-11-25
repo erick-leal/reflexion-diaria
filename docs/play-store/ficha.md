@@ -94,9 +94,12 @@ afirmaciones de salud.
 - ¿Los usuarios pueden interactuar o intercambiar contenido entre ellos?
   **No** (el diario es privado; compartir como imagen pasa por las apps
   del propio teléfono).
+- **Contenido en línea** (contenido que no viene en la descarga): **Sí**,
+  porque las reflexiones se cargan desde el servidor.
 - ¿Comparte la ubicación del usuario con otros? **No.**
-- ¿Permite compras digitales? **No.**
-- Resultado esperado: apto para todo público (PEGI 3 / Everyone).
+- ¿Permite compras digitales? ¿Recompensas/NFT? ¿Navegador? ¿Principalmente
+  educativa? **No** a todo.
+- Resultado (2026-11-25): **apto para todas las edades** (Brasil "L").
 
 ### Seguridad de los datos (Data safety)
 
@@ -109,7 +112,8 @@ algo nuevo, actualizar las dos cosas.
 |---|---|
 | ¿Recopila o comparte alguno de los tipos de datos requeridos? | Sí |
 | ¿Todos los datos se encriptan en tránsito? | Sí (HTTPS) |
-| ¿Ofreces una forma de solicitar la eliminación de datos? | Sí: Ajustes → Borrar mis datos (y por correo) |
+| ¿Métodos de creación de cuentas? | La app no permite crear cuentas; tampoco se inicia sesión con cuentas externas |
+| ¿Ofreces una forma de solicitar la eliminación de datos? | Sí. URL de eliminación: la misma `/privacy` (sección "Cómo borrar tus datos") |
 
 **Tipos de datos recopilados** (ninguno se **comparte** con terceros;
 Railway es proveedor de hosting, no cuenta como "compartir"):
@@ -130,20 +134,27 @@ diagnóstico o fallos (no hay Sentry ni analítica).
 ## Capturas
 
 Play acepta entre 2 y 8 capturas de teléfono, con la proporción del lado
-largo como máximo **2 veces** el lado corto. Las del Xiaomi 10T salen a
-1080 × 2400 (2.22), así que **hay que recortarlas**: se pasan a 1080 × 1920
-con un script antes de subirlas.
+largo como máximo **2 veces** el lado corto. Las del Xiaomi 10T salen
+20:9 (2.22), así que no sirven tal cual. Las subidas (en `screenshots/`)
+se procesaron así: recorte de la barra de estado y la de navegación,
+relleno lateral estirando la columna del borde hasta 9:16, y escala a
+1080 × 1920. Son: Hoy claro, Hoy oscuro, Compartir, Historial,
+Favoritos, Ajustes (sacadas del APK de preview, misma UI).
 
-Capturas sugeridas (con contenido real, en el build de producción):
+**Declaración de recursos de IA** (paso de revisión de la ficha): "No
+etiquetar recursos" (decisión de Erick: capturas reales, ícono/gráfico
+geométricos por script, textos revisados por él).
 
-1. **Hoy** en modo claro, con una reflexión que tenga una buena acción.
-2. **Hoy** en modo oscuro (otra reflexión).
-3. **Compartir**: la hoja con la vista previa de la historia.
-4. **Historial**: el calendario del mes con días marcados.
-5. **Diario**: el resumen del mes con alguna nota.
-6. **Ajustes**: los recordatorios de mañana y noche.
+## Prueba cerrada (Alpha)
 
-## Notas de la versión (prueba interna)
+Configurada el 2026-11-25: todos los países (177), lista de correos
+**"Testers Versiculo Diario"** (43, reutilizada de Versículo), correo de
+comentarios eleal.escobar@gmail.com, versión 2 (1.0.0). Enviada a revisión
+junto con la ficha. Para pedir producción hace falta **≥12 testers
+aceptados durante ≥14 días seguidos** (el requisito es por app, no por
+cuenta).
+
+## Notas de la versión (prueba interna y cerrada)
 
 ```
 <es-419>

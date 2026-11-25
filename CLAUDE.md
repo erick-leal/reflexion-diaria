@@ -2,24 +2,30 @@
 
 ## ▶ Cómo retomar / próximo paso (actualizar al cerrar cada fase)
 
-**Estado al 2026-11-24:** fases 1–10 cerradas. Producción tiene contenido
-real: el cron programa solo y `/daily-reflection` responde 200. Quedan
-~42 `reviewed` sin programar (más de un mes). Cuando el admin avise de
-menos de 7 revisadas, hacer un lote nuevo (ver "Contenido y cron").
+**Estado al 2026-11-25:** fases 1–11 cerradas. La app está en Google Play
+en **prueba interna** y la **prueba cerrada** (ficha + contenido + versión
+2/1.0.0) se **envió a revisión de Google el 2026-11-25**. Producción del
+backend sirve contenido real; quedan ~42 `reviewed`. Cuando el admin avise
+de menos de 7 revisadas, hacer un lote nuevo (ver "Contenido y cron";
+ojo: ahora hay que abrir el proxy del Postgres, ver "Infraestructura").
 
-**Próximo paso: Fase 11** (ícono, splash, EAS preview/production, ficha en
-Google Play). Como siempre: proponer y esperar la aprobación de Erick en
-cada subpaso.
+**Próximo paso: publicar en producción.** Cuando Google apruebe la prueba
+cerrada: mandar el link de la prueba cerrada (Play Console → Prueba
+cerrada → Testers) a la lista "Testers Versiculo Diario", esperar **≥12
+testers aceptados durante ≥14 días seguidos** y pedir acceso a producción
+(Panel de control). Antes del build de producción definitivo, hacer el
+pendiente de permisos de abajo.
 
 **Pendientes sueltos (no olvidar):**
-- **Cerrar el proxy público del Postgres** antes de lanzar (Fase 11).
+- **Permisos sobrantes en el AAB:** `SYSTEM_ALERT_WINDOW` y
+  `READ/WRITE_EXTERNAL_STORAGE` los mete Expo por defecto y la app no los
+  usa. Quitarlos con `android.blockedPermissions` en `app.json`, nuevo
+  build y probar compartir (usa el almacenamiento de caché, no externo).
 - **Confirmar que el pre-deploy aplica migraciones** con la primera
   migración nueva (mirar el log del deploy en Railway).
-- `backend/railway.json` ya no lo lee Railway (Config as Code obsoleto):
-  la config real está en el dashboard. Se puede borrar.
-- Fase 11: volver a buscar "Un paso a la vez" en Play Store, ícono/splash,
-  `eas.json` (Node 22.13 + `EXPO_PUBLIC_API_URL`), revisar el peso del
-  bundle (fuente MaterialSymbols de ~976 KB que mete `expo-router`).
+- Las capturas de la ficha salieron de imágenes de 900×2000 (comprimidas
+  por el chat) escaladas a 1080×1920; si se ven blandas, rehacerlas con
+  los PNG originales del teléfono.
 
 **Para trabajar eficiente (consumo de tokens):**
 - **Una sesión por fase**, abierta en **esta carpeta**
@@ -173,6 +179,32 @@ Mobile Engineer/Architect/mentor técnico:
     `keyboardShouldPersistTaps`); el loading se muestra donde va a
     aparecer la data; `DateTimePickerAndroid.open` imperativo.
 
+## Gotchas propios (Fase 11)
+
+13. **Peer deps nativas que pnpm instala solas** (rompió el primer build
+    de EAS): `expo-router` pide `react-native-reanimated` y
+    `react-native-worklets` como peer; sin tenerlas en `package.json`,
+    pnpm instalaba las últimas (4.8.0 / 0.14), incompatibles con RN 0.86,
+    y Gradle fallaba en `assertMinimalReactNativeVersionTask`. **Expo Go
+    no lo muestra** (trae sus módulos nativos) y `expo-doctor` /
+    `expo install --check` solo revisan dependencias directas. Fix: están
+    fijadas como directas (4.5.1 / 0.10.1). Tras subir el SDK, revisar
+    **todas** las nativas instaladas contra
+    `node_modules/expo/bundledNativeModules.json`, no solo las directas.
+14. **Peso del bundle:** importar íconos siempre por subruta
+    (`import Ionicons from "@expo/vector-icons/Ionicons"`); el índice de
+    `@expo/vector-icons` mete ~19 fuentes (~4 MB). La fuente MaterialSymbols
+    de `expo-router` (vía native tabs → `expo-symbols`) está anulada en
+    `metro.config.js` (`emptyModules`); si algún día se usan native tabs o
+    `SymbolView` en Android, quitar esa regla. Assets: 5.3 MB → 740 KB.
+15. **Play Protect** bloquea el APK de preview: "⋮ → Instalar de todos
+    modos" (igual que en Versículo). El link de prueba interna en el
+    Xiaomi abría un modal de Play en blanco / "Reintentar": aceptar la
+    invitación desde el PC y luego instalar.
+16. **Prueba cerrada de 12 testers × 14 días es por app**, no por cuenta:
+    tener a Versículo publicado no la salta. Se reutiliza la lista de
+    correos "Testers Versiculo Diario".
+
 ## Infraestructura
 
 - **Proyecto Railway** `steadfast-sparkle`
@@ -205,14 +237,18 @@ Mobile Engineer/Architect/mentor técnico:
     `/packages/shared/**` y `/pnpm-lock.yaml` (no se redespliega con
     cambios de backend o mobile). Puerto 8080. Sin variables: la config
     de Firebase y la URL del backend van en el código, porque son públicas.
-  - `backend/railway.json` quedó en el repo como documentación de lo
-    mismo; puede borrarse.
+  - `backend/railway.json` se borró en la Fase 11.
 - **Migraciones:** se aplican solas en el pre-deploy. El pre-deploy se
   configuró el 2026-11-24, y la primera migración nueva que se despliegue
   confirma que corre (revisar el log del deploy).
-- **Postgres con el proxy público ABIERTO** mientras desarrollamos (lo
-  usa `backend/.env` en local). **Cerrarlo antes de lanzar**, como en
-  Versículo (gotcha #7 de su `CLAUDE.md`).
+- **Postgres SIN proxy público** (cerrado el 2026-11-25). Backend y cron
+  usan la URL privada y no se enteran. **`backend/.env` local ya no
+  conecta.** Para correr algo local contra la base (cargar un lote,
+  `alembic check`): con el conector MCP de Railway, `create-tcp-proxy` en
+  el servicio `Postgres` (puerto 5432), poner el host:puerto nuevo en
+  `DATABASE_URL` de `backend/.env` (cambia cada vez), hacer lo necesario y
+  **borrarlo** con `delete-tcp-proxy`. Síntoma de proxy cerrado: psycopg
+  "server closed the connection unexpectedly".
 - **Si cambia el dominio del admin:** actualizar `allow_origins` en
   `backend/app/main.py` **y** los dominios autorizados de Firebase Auth.
 - **Gotchas al operar Railway desde el navegador** (pasó el 2026-11-24):
@@ -465,5 +501,30 @@ Mobile Engineer/Architect/mentor técnico:
     Expo Go. El primer intento de revisión no llegó al backend (no hubo
     llamadas en los logs) y se resolvió recargando el admin: si una acción
     del admin "no queda", mirar primero los logs del backend.
-11. Identidad visual (ícono, splash) + EAS (preview APK, production AAB
-    con R8) + ficha en Google Play.
+11. ✅ **Identidad visual + EAS + Google Play** (2026-11-24/25, APK
+    probado en el Xiaomi; prueba cerrada enviada a revisión):
+    - **Ícono "cuatro escalones"** (elegido por Erick entre varias
+      variantes): escalera blanca sólida sobre `#1F6B52`. Todo lo genera
+      `scripts/generate_app_icon.py` (Pillow, solo en el venv local):
+      ícono, adaptive icon con monocromo, splash claro/oscuro
+      (`splash-icon-dark.png` en `#5CC49A`), favicon, ícono 512 y gráfico
+      de funciones de Play. Para cambiarlo, editar el script y correrlo.
+    - **Bundle:** ver gotcha #14.
+    - **EAS:** proyecto `@ericklealescobar/reflexion-diaria` (cuenta
+      personal, no la de equipo), `apps/mobile/eas.json` con preview (APK)
+      y production (AAB, `autoIncrement`, `appVersionSource: local`, así
+      que el `versionCode` sube en `app.json` y hay que commitearlo). R8
+      con `expo-build-properties` (minify + shrink). Keystore en EAS.
+      Builds: `eas.cmd build --profile <perfil> --platform android
+      --non-interactive --no-wait` desde `apps/mobile`.
+    - **Privacidad:** `GET /privacy` (HTML) y `DELETE /me` (borra el
+      usuario anónimo; favoritos y diario por CASCADE; no usa
+      `get_current_user_id` porque esa dependencia lo crearía). En la app,
+      Ajustes → "Tus datos": link a la política y "Borrar mis datos"
+      (cancela requests en vuelo, borra, genera UUID nuevo).
+    - **Play Console** (app "Un paso a la vez"): todo lo declarado está en
+      `docs/play-store/ficha.md` (textos, data safety, IARC "todas las
+      edades", público 18+, sin funciones de salud, categoría Estilo de
+      vida). Prueba interna activa; prueba cerrada Alpha enviada a
+      revisión. Producción: ver "Próximo paso" arriba.
+    - Proxy del Postgres cerrado y `backend/railway.json` borrado.
