@@ -13,14 +13,17 @@ ojo: ahora hay que abrir el proxy del Postgres, ver "Infraestructura").
 cerrada: mandar el link de la prueba cerrada (Play Console → Prueba
 cerrada → Testers) a la lista "Testers Versiculo Diario", esperar **≥12
 testers aceptados durante ≥14 días seguidos** y pedir acceso a producción
-(Panel de control). Antes del build de producción definitivo, hacer el
-pendiente de permisos de abajo.
+(Panel de control). El próximo AAB de producción ya sale sin los
+permisos sobrantes (ver abajo).
+
+**Hecho el 2026-11-26:** `android.blockedPermissions` en `app.json` quita
+`SYSTEM_ALERT_WINDOW` y `READ/WRITE_EXTERNAL_STORAGE` (los metía Expo por
+defecto; la app no los usa). Probado en un APK de preview en el Xiaomi:
+compartir como imagen sigue funcionando (usa la caché, no el
+almacenamiento externo). La versión 2 que está en la prueba cerrada
+todavía los declara; se van con el próximo AAB.
 
 **Pendientes sueltos (no olvidar):**
-- **Permisos sobrantes en el AAB:** `SYSTEM_ALERT_WINDOW` y
-  `READ/WRITE_EXTERNAL_STORAGE` los mete Expo por defecto y la app no los
-  usa. Quitarlos con `android.blockedPermissions` en `app.json`, nuevo
-  build y probar compartir (usa el almacenamiento de caché, no externo).
 - **Confirmar que el pre-deploy aplica migraciones** con la primera
   migración nueva (mirar el log del deploy en Railway).
 - Las capturas de la ficha salieron de imágenes de 900×2000 (comprimidas
